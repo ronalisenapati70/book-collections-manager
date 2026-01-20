@@ -1,17 +1,19 @@
-<div>
-  <header class="page-header">
-    <div class="page-header__title">
-      <h1>Collections</h1>
-      <p>Manage your book shelves</p>
+<div class="app-layout">
+  <header class="top-bar">
+    <div class="app-identity">
+      <div>
+        <h1>BookNest</h1>
+        <p class="subtitle">Manage collections and books</p>
+      </div>
     </div>
-
-    <a routerLink="/collections/new" class="btn btn--primary">
-      <span class="btn__icon">+</span>
-      New Collection
-    </a>
   </header>
 
-  <main>
+  <nav class="tabs" aria-label="Primary navigation">
+    <a routerLink="/collections" routerLinkActive="active">Collections</a>
+    <a routerLink="/books" routerLinkActive="active">Books</a>
+  </nav>
+
+  <main class="content">
     <router-outlet></router-outlet>
   </main>
 </div>

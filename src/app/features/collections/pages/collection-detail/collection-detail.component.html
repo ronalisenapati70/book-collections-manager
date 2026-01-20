@@ -1,1 +1,103 @@
-<p>collection-detail works!</p>
+<div class="page-wrapper">
+  <div [class]="'detail-header color-theme-' + (collection()?.theme || 'slate')">
+    <div class="header-content">
+      <a routerLink="/collections" class="back-link">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="icon"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+          />
+        </svg>
+        Back to Collections
+      </a>
+      <div class="header-main" *ngIf="collection() as col">
+        <div>
+          <h1>{{ col.name }}</h1>
+          <p>{{ col.description }}</p>
+        </div>
+        <a
+          [routerLink]="['/books/new']"
+          [queryParams]="{ collectionId: col.id }"
+          class="button-add"
+        >
+          + Add Book
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="filter-bar">
+      <div class="search-input-wrapper">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="search-icon"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+          />
+        </svg>
+        <input
+          [formControl]="filterControl"
+          type="text"
+          placeholder="Search by title or author..."
+          class="search-input"
+        />
+      </div>
+      <div class="book-count-display">Showing {{ filteredBooks().length }} books</div>
+    </div>
+
+    <div class="book-grid">
+      <div class="book-card" *ngFor="let book of filteredBooks(); trackBy: trackByBookId">
+        <div class="card-image-wrapper">
+          <div class="image-overlay">
+            <span class="rating">
+              {{ stars(book.rating) }}
+            </span>
+          </div>
+        </div>
+        <div class="card-content">
+          <h3>{{ book.title }}</h3>
+          <p class="author">{{ book.author }}</p>
+          <p class="description">
+            {{ book.description }}
+          </p>
+          <div class="card-actions">
+            <a [routerLink]="['/books', book.id, 'edit']" class="action-button edit-button">
+              Edit
+            </a>
+            <button (click)="confirmDeleteBook(book)" class="action-button remove-button">
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="filteredBooks().length === 0">
+        <p>No books found in this collection.</p>
+        <p>Try adding a new book to get started.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-confirm-modal
+  [isOpen]="!!bookToDelete()"
+  title="Remove Book"
+  [message]="'Are you sure you want to remove ' + bookToDelete()?.title + ' from this collection?'"
+  (onConfirm)="deleteBook()"
+  (onCancel)="bookToDelete.set(null)"
+></app-confirm-modal>

@@ -1,0 +1,15 @@
+<div class="modal-overlay" *ngIf="isOpen">
+  <div class="modal-content">
+    <div class="modal-body">
+      <h3 class="modal-title">{{ title }}</h3>
+      <p class="modal-message">
+        {{ message }}
+        <span class="modal-context" *ngIf="contextLabel">{{ contextLabel }}</span>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button (click)="onCancel.emit()" class="button button-secondary">Cancel</button>
+      <button (click)="onConfirm.emit()" class="button button-danger">Confirm</button>
+    </div>
+  </div>
+</div>
