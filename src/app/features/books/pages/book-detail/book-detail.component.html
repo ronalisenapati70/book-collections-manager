@@ -1,1 +1,122 @@
-<p>book-detail works!</p>
+<div class="page-container">
+  <ng-container *ngIf="book() as currentBook; else notFound">
+    <header class="page-header">
+      <a routerLink="/books" class="back-link">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="icon"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+          />
+        </svg>
+        Back to All Books
+      </a>
+
+      <h1>
+        <ng-container *ngIf="isEditMode(); else addTitle">Edit Book</ng-container>
+        <ng-template #addTitle>Add New Book</ng-template>
+      </h1>
+
+      <p>
+        <ng-container *ngIf="isEditMode(); else addSubtitle">
+          Update the details for "{{ editingBook()?.title }}"
+        </ng-container>
+        <ng-template #addSubtitle> Add a new book to your library. </ng-template>
+      </p>
+    </header>
+
+    <div class="form-container">
+      <form class="edit-form" [formGroup]="bookForm" (ngSubmit)="saveBook()">
+        <div class="form-body">
+          <div class="form-left">
+            <div class="form-group">
+              <label class="form-label">Collection</label>
+              <select formControlName="collectionId" class="form-input form-select">
+                <option [ngValue]="null" disabled>Select a collection</option>
+                <option *ngFor="let col of collections(); trackBy: trackById" [ngValue]="col.id">
+                  {{ col.name }}
+                </option>
+              </select>
+
+              <p
+                class="error-message"
+                *ngIf="
+                  bookForm.get('collectionId')?.invalid && bookForm.get('collectionId')?.touched
+                "
+              >
+                Please select a collection
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Title</label>
+
+              <div class="input-with-button">
+                <input
+                  formControlName="title"
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter book title"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Author</label>
+              <div class="input-with-button">
+                <input formControlName="author" type="text" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Rating</label>
+              <select formControlName="rating" class="form-input form-select">
+                <option [ngValue]="5">5 (Excellent)</option>
+                <option [ngValue]="4">4 (Great)</option>
+                <option [ngValue]="3">3 (Good)</option>
+                <option [ngValue]="2">2 (Fair)</option>
+                <option [ngValue]="1">1 (Poor)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-right">
+            <label class="form-label">Description</label>
+            <textarea formControlName="description" class="form-input form-textarea"></textarea>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <a routerLink="/books" class="button button-secondary">Cancel</a>
+          <button type="submit" [disabled]="bookForm.invalid" class="button button-primary">
+            <ng-container *ngIf="isEditMode(); else saveText">Update Book</ng-container>
+            <ng-template #saveText>Save Book</ng-template>
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-container>
+
+  <ng-template #notFound>
+    <div class="not-found">
+      <h2>Book not found</h2>
+      <p>The book you are looking for does not exist.</p>
+      <a routerLink="/books" class="button button-primary">Back to All Books</a>
+    </div>
+  </ng-template>
+
+  <app-confirm-modal
+    [isOpen]="!!bookToDelete()"
+    title="Delete Book"
+    [message]="'Are you sure you want to permanently delete ' + bookToDelete()?.title + '?'"
+    (onConfirm)="deleteBook()"
+    (onCancel)="bookToDelete.set(null)"
+  ></app-confirm-modal>
+</div>

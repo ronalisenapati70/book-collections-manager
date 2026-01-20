@@ -77,7 +77,7 @@
             {{ book.description }}
           </p>
           <div class="card-actions">
-            <a [routerLink]="['/books', book.id, 'edit']" class="action-button edit-button">
+            <a [routerLink]="['/books', book.id]" class="action-button edit-button">
               Edit
             </a>
             <button (click)="confirmDeleteBook(book)" class="action-button remove-button">

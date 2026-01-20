@@ -5,6 +5,7 @@ import { BookModel } from '../../../books/models/books.model';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
 import { CommonModule } from '@angular/common';
+import { MOCK_BOOKS, MOCK_COLLECTIONS } from '../../../../core/mock-data/mock-data.component';
 
 @Component({
   selector: 'app-collection-detail',
@@ -23,56 +24,9 @@ export class CollectionDetailComponent {
   filterQuery = signal('');
 
   // Local mock data (replace later with API/NgRx)
-  private collections = signal<CollectionModel[]>([
-    {
-      id: 1,
-      name: 'Productivity',
-      description: 'Work smarter, not harder.',
-      createdAt: '2024-06-01T00:00:00.000Z',
-      theme: 'indigo',
-    },
-    {
-      id: 2,
-      name: 'Fiction',
-      description: 'Stories to unwind.',
-      createdAt: '2024-06-01T00:00:00.000Z',
-      theme: 'emerald',
-    },
-    {
-      id: 3,
-      name: 'Tech & Architecture',
-      description: 'Engineering craft + system design.',
-      createdAt: '2024-06-01T00:00:00.000Z',
-      theme: 'rose',
-    },
-  ]);
+  collections = signal<CollectionModel[]>([...MOCK_COLLECTIONS]);
 
-  private books = signal<BookModel[]>([
-    {
-      id: 1,
-      collectionId: 1,
-      title: 'Atomic Habits',
-      author: 'James Clear',
-      description: 'Practical strategies for building good habits.',
-      rating: 5,
-    },
-    {
-      id: 2,
-      collectionId: 1,
-      title: 'Deep Work',
-      author: 'Cal Newport',
-      description: 'Focus strategies for meaningful output.',
-      rating: 4,
-    },
-    {
-      id: 3,
-      collectionId: 2,
-      title: 'Dune',
-      author: 'Frank Herbert',
-      description: 'Epic sci-fi classic with politics and ecology.',
-      rating: 5,
-    },
-  ]);
+  books = signal<BookModel[]>([...MOCK_BOOKS]);
 
   constructor() {
     // Must match your route param: /collections/:collectionId

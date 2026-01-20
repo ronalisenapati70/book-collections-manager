@@ -1,1 +1,131 @@
-<p>book-list works!</p>
+<div class="page-container">
+  <header class="page-header">
+    <div>
+      <h1>All Books</h1>
+      <p>View and manage your entire library across all collections</p>
+    </div>
+
+    <a
+      routerLink="/books/new"
+      class="button button-primary"
+      [class.disabled]="!hasCollections()"
+      [attr.aria-disabled]="!hasCollections()"
+      [title]="!hasCollections() ? 'Create a collection first' : 'Add a new book'"
+      (click)="!hasCollections() && $event.preventDefault()"
+    >
+      <span class="add-icon">+</span> Add Book
+    </a>
+  </header>
+
+  <div class="filter-bar">
+    <div class="search-input-wrapper">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="search-icon"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+        />
+      </svg>
+
+      <input
+        [formControl]="filterControl"
+        type="text"
+        placeholder="Search title, author, or collection..."
+        class="search-input"
+        aria-label="Search books"
+      />
+    </div>
+
+    <div class="book-count-display">Total: {{ filteredBooks().length }} books</div>
+  </div>
+
+  <div class="book-grid">
+    <div class="book-card" *ngFor="let book of filteredBooks(); trackBy: trackByBookId">
+      <div class="card-image-wrapper" aria-hidden="true">
+        <div class="image-overlay">
+          <span class="rating">{{ stars(book.rating) }}</span>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <h3 class="title">{{ book.title }}</h3>
+        <p class="author">{{ book.author }}</p>
+
+        <div
+          class="collection-chip-wrapper"
+          *ngIf="getCollectionName(book.collectionId) as colName"
+        >
+          <a [routerLink]="['/collections', book.collectionId]" class="collection-chip">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              class="chip-icon"
+              aria-hidden="true"
+            >
+              <path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3Z" />
+              <path
+                fill-rule="evenodd"
+                d="M13 6H3v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6ZM8.75 8a.75.75 0 0 0-1.5 0v1.25H6a.75.75 0 0 0 0 1.5h1.25V12a.75.75 0 0 0 1.5 0v-1.25H10a.75.75 0 0 0 0-1.5H8.75V8Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            {{ colName }}
+          </a>
+        </div>
+
+        <p class="description">
+          {{ book.description }}
+        </p>
+
+        <div class="card-actions">
+          <a [routerLink]="['/books', book.id]" class="action-button edit-button"> View / Edit </a>
+
+          <button
+            type="button"
+            (click)="confirmDeleteBook(book)"
+            class="action-button remove-button"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filteredBooks().length === 0">
+      <div class="empty-state-icon" aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+          />
+        </svg>
+      </div>
+      <p class="empty-state-title">No books yet</p>
+      <p class="empty-state-message">Create a collection and add your first book!</p>
+    </div>
+  </div>
+
+  <app-confirm-modal
+    [isOpen]="!!bookToDelete()"
+    [title]="'Remove ' + (bookToDelete()?.title || 'book')"
+    message="This action cannot be undone. Are you sure you want to continue?"
+    (onConfirm)="deleteBook()"
+    (onCancel)="cancelDeleteBook()"
+  ></app-confirm-modal>
+</div>
