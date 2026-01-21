@@ -7,6 +7,10 @@ import { Store } from '@ngrx/store';
 
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
 import { BookModel } from '../../../books/models/books.model';
+import {
+  COLLECTION_THEME_COLORS,
+  CollectionThemeColor,
+} from '../../../../shared/constants/color-themes';
 import { loadCollections, updateCollection } from '../../store/collections.actions';
 import { loadBooks, deleteBook } from '../../../books/store/books.actions';
 import { selectAllCollections } from '../../store/collections.selectors';
@@ -30,18 +34,7 @@ export class CollectionDetailComponent {
   filterControl = new FormControl('', { nonNullable: true });
   filterQuery = signal('');
 
-  readonly colors = [
-    'teal',
-    'emerald',
-    'rose',
-    'amber',
-    'cyan',
-    'fuchsia',
-    'indigo',
-    'slate',
-    'violet',
-    'orange',
-  ] as const;
+  readonly colors = COLLECTION_THEME_COLORS;
 
   collectionForm = new FormGroup({
     name: new FormControl('', {
@@ -49,7 +42,7 @@ export class CollectionDetailComponent {
       validators: [Validators.required, Validators.minLength(2)],
     }),
     description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    theme: new FormControl<(typeof this.colors)[number]>('indigo', {
+    theme: new FormControl<CollectionThemeColor>('indigo', {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -84,7 +77,7 @@ export class CollectionDetailComponent {
       this.collectionForm.patchValue({
         name: c.name,
         description: c.description,
-        theme: c.theme as (typeof this.colors)[number],
+        theme: c.theme as CollectionThemeColor,
       });
     });
   }
@@ -140,7 +133,7 @@ export class CollectionDetailComponent {
       this.collectionForm.patchValue({
         name: c.name,
         description: c.description,
-        theme: c.theme as (typeof this.colors)[number],
+        theme: c.theme as CollectionThemeColor,
       });
     }
     this.isEditing.set(false);

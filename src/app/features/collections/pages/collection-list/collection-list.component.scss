@@ -37,7 +37,7 @@
   justify-content: center;
   padding: 0.45rem 0.9rem;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   border-radius: 0.6rem;
   transition:
     background-color 0.2s,
@@ -341,68 +341,6 @@ svg {
 }
 .button-danger:hover {
   background-color: var(--color-rose-500);
-}
-
-/* Color Themes */
-.color-theme-indigo {
-  background-color: var(--color-indigo-500);
-}
-.color-theme-emerald {
-  background-color: var(--color-emerald-500);
-}
-.color-theme-rose {
-  background-color: var(--color-rose-500);
-}
-.color-theme-amber {
-  background-color: var(--color-amber-500);
-}
-.color-theme-cyan {
-  background-color: var(--color-cyan-500);
-}
-.color-theme-fuchsia {
-  background-color: var(--color-fuchsia-500);
-}
-.color-theme-teal {
-  background-color: var(--color-teal-500);
-}
-.color-theme-slate {
-  background-color: var(--color-slate-500);
-}
-.color-theme-violet {
-  background-color: var(--color-violet-500);
-}
-.color-theme-orange {
-  background-color: var(--color-orange-500);
-}
-.color-theme-indigo-dark {
-  background-color: var(--color-indigo-600);
-}
-.color-theme-green {
-  background-color: var(--color-green-600);
-}
-.color-theme-sky {
-  background-color: var(--color-sky-500);
-}
-.color-theme-pink {
-  background-color: var(--color-pink-500);
-}
-.color-theme-purple {
-  background-color: var(--color-purple-600);
-}
-.color-theme-emerald-dark {
-  background-color: var(--color-emerald-700);
-}
-.color-theme-rose-light {
-  background-color: var(--color-rose-400);
-}
-.color-theme-slate-dark {
-  background-color: var(--color-slate-800);
-}
-.color-theme-orange-dark {
-  background-color: var(--color-orange-600);
-}
-.color-theme-teal-dark {
-  background-color: var(--color-teal-600);
 }
 
 /* Responsive Grid */

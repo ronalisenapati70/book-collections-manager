@@ -5,6 +5,10 @@ import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 
 import { createCollection } from '../../store/collections.actions';
+import {
+  COLLECTION_THEME_COLORS,
+  CollectionThemeColor,
+} from '../../../../shared/constants/color-themes';
 
 @Component({
   selector: 'app-collection-new',
@@ -23,19 +27,8 @@ export class CollectionNewComponent {
     }),
     description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
-  readonly colors = [
-    'teal',
-    'emerald',
-    'rose',
-    'amber',
-    'cyan',
-    'fuchsia',
-    'indigo',
-    'slate',
-    'violet',
-    'orange',
-  ] as const;
-  selectedColor = signal<(typeof this.colors)[number]>('indigo');
+  readonly colors = COLLECTION_THEME_COLORS;
+  selectedColor = signal<CollectionThemeColor>('indigo');
 
   trackByColor(_index: number, color: string) {
     return color;
