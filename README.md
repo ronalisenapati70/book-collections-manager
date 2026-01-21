@@ -2,6 +2,31 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.5.
 
+## Prerequisites
+
+- Node.js 18+ and npm
+
+## Install
+
+```bash
+npm install
+```
+
+## Run locally
+
+```bash
+npm start
+```
+
+Then open `http://localhost:4200/`.
+
+## Features
+
+- Manage collections and books (create, edit, delete)
+- Filter collections and books
+- In-memory API for simulated backend
+- Typed reactive forms
+
 ## Development server
 
 To start a local development server, run:

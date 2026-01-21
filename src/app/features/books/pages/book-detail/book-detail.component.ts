@@ -1,11 +1,12 @@
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CollectionModel } from '../../../collections/models/collections.model';
-import { MOCK_BOOKS, MOCK_COLLECTIONS } from '../../../../core/mock-data/mock-data.component';
-import { BookModel } from '../../models/books.model';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
+import { LibraryApiService } from '../../../../core/api/library-api.service';
+import { BookModel } from '../../models/books.model';
+import { CollectionModel } from '../../../collections/models/collections.model';
 
 @Component({
   selector: 'app-book-detail',
@@ -17,21 +18,20 @@ import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confi
 export class BookDetailComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private api = inject(LibraryApiService);
 
-  // Local mock state (later replace with API/NgRx)
-  private books = signal<BookModel[]>([...MOCK_BOOKS]);
-  private _collections = signal<CollectionModel[]>([...MOCK_COLLECTIONS]);
+  // Loaded state from API
+  private _book = signal<BookModel | null>(null);
+  private _collections = signal<CollectionModel[]>([]);
 
-  // Exposed for template (collections())
+  // Exposed for template usage
   collections = computed(() => this._collections());
 
-  // Route param state
   private bookId = signal<number | null>(null);
 
-  // Delete confirm state (used by app-confirm-modal)
+  // Confirm modal state
   bookToDelete = signal<BookModel | null>(null);
 
-  // Form
   bookForm = new FormGroup({
     collectionId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     title: new FormControl('', {
@@ -43,92 +43,96 @@ export class BookDetailComponent {
     description: new FormControl('', { nonNullable: true }),
   });
 
-  // Computeds for template
-  book = computed(() => {
-    const id = this.bookId();
-    if (!id) return undefined;
-    return this.books().find((b) => b.id === id);
-  });
+  // Template computeds
+  book = computed(() => this._book() ?? undefined);
 
   collection = computed(() => {
-    const b = this.book();
+    const b = this._book();
     if (!b) return undefined;
     return this._collections().find((c) => c.id === b.collectionId);
   });
 
-  // In book detail we are effectively always editing an existing book
-  isEditMode = computed(() => !!this.book());
-  editingBook = computed(() => this.book() ?? null);
+  isEditMode = computed(() => !!this._book());
+  editingBook = computed(() => this._book());
 
   constructor() {
-    this.route.paramMap.subscribe((pm) => {
-      // Change 'bookId' to 'id' if your route uses :id
-      const raw = pm.get('bookId');
-      this.bookId.set(raw ? Number(raw) : null);
+    // Load collections once (for collection link / optional display)
+    this.api.getCollections().subscribe((c) => this._collections.set(c));
 
-      // Patch form from current book
-      const b = this.book();
-      if (b) {
-        this.bookForm.reset({
-          collectionId: b.collectionId,
-          title: b.title,
-          author: b.author,
-          rating: b.rating,
-          description: b.description,
-        });
-      } else {
-        // if not found, keep form empty
-        this.bookForm.reset({
-          collectionId: null,
-          title: '',
-          author: '',
-          rating: 5,
-          description: '',
-        });
+    // Load book whenever route param changes
+    this.route.paramMap.subscribe((pm) => {
+      const raw = pm.get('bookId');
+      const id = raw ? Number(raw) : null;
+      this.bookId.set(id);
+
+      // reset modal state on route change
+      this.bookToDelete.set(null);
+
+      if (id === null || Number.isNaN(id)) {
+        this._book.set(null);
+        this.resetFormEmpty();
+        return;
       }
 
-      // reset modal state when navigating to another book
-      this.bookToDelete.set(null);
+      this.api.getBook(id).subscribe({
+        next: (b) => {
+          this._book.set(b);
+          this.bookForm.reset({
+            collectionId: b.collectionId,
+            title: b.title,
+            author: b.author,
+            rating: b.rating,
+            description: b.description,
+          });
+        },
+        error: () => {
+          // If API returns 404, show "not found" state in template
+          this._book.set(null);
+          this.resetFormEmpty();
+        },
+      });
     });
   }
 
-  // For *ngFor trackBy
+  private resetFormEmpty() {
+    this.bookForm.reset({
+      collectionId: null,
+      title: '',
+      author: '',
+      rating: 5,
+      description: '',
+    });
+  }
+
   trackById(_index: number, item: { id: number }): number {
     return item.id;
   }
 
-  // Submit handler from your HTML (ngSubmit)="saveBook()"
   saveBook(): void {
     if (this.bookForm.invalid) {
       this.bookForm.markAllAsTouched();
       return;
     }
 
-    const current = this.book();
+    const current = this._book();
     if (!current) return;
 
     const value = this.bookForm.getRawValue();
 
-    this.books.update((prev) =>
-      prev.map((b) =>
-        b.id === current.id
-          ? {
-              ...b,
-              collectionId: value.collectionId!,
-              title: value.title,
-              author: value.author,
-              rating: value.rating,
-              description: value.description,
-            }
-          : b,
-      ),
-    );
+    const updated: BookModel = {
+      id: current.id,
+      collectionId: value.collectionId!,
+      title: value.title,
+      author: value.author,
+      rating: value.rating,
+      description: value.description,
+    };
 
-    // Optional: navigate back to list after save
-    this.router.navigateByUrl('/books');
+    this.api.updateBook(updated).subscribe(() => {
+      this.router.navigateByUrl('/books');
+    });
   }
 
-  // Modal-driven delete
   confirmDelete(book: BookModel): void {
     this.bookToDelete.set(book);
   }
@@ -137,9 +141,9 @@ export class BookDetailComponent {
     const b = this.bookToDelete();
     if (!b) return;
 
-    this.books.update((prev) => prev.filter((x) => x.id !== b.id));
-    this.bookToDelete.set(null);
-
-    this.router.navigateByUrl('/books');
+    this.api.deleteBook(b.id).subscribe(() => {
+      this.bookToDelete.set(null);
+      this.router.navigateByUrl('/books');
+    });
   }
 }

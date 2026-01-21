@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { LibraryApiService } from '../../../../core/api/library-api.service';
 
 @Component({
   selector: 'app-collection-new',
@@ -12,6 +13,7 @@ import { Router, RouterLink } from '@angular/router';
 })
 export class CollectionNewComponent {
   private router = inject(Router);
+  private api = inject(LibraryApiService);
   collectionForm = new FormGroup({
     name: new FormControl('', {
       nonNullable: true,
@@ -40,16 +42,15 @@ export class CollectionNewComponent {
   createCollection() {
     if (this.collectionForm.invalid) return;
     const newCollection = {
-      id: Date.now(), // temp ID until API/NgRx
+      id: 0,
       name: this.collectionForm.value.name!,
       description: this.collectionForm.value.description!,
       theme: this.selectedColor(),
       createdAt: new Date().toISOString(),
     };
 
-    console.log('New collection (mock):', newCollection);
-
-    // For now, just navigate back (later we’ll dispatch to store / API)
-    this.router.navigateByUrl('/collections');
+    this.api.createCollection(newCollection).subscribe(() => {
+      this.router.navigateByUrl('/collections');
+    });
   }
 }

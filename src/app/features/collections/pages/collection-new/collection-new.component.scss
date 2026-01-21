@@ -115,9 +115,10 @@
 }
 
 .button {
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  border-radius: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 0.6rem;
   text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer;
@@ -131,11 +132,7 @@
 }
 .button-primary:hover:not(:disabled) {
   background-color: var(--color-indigo-700);
-  transform: translateY(-2px);
-}
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  transform: translateY(-1px);
 }
 .button-secondary {
   color: var(--color-slate-600);
@@ -143,6 +140,10 @@
 .button-secondary:hover {
   background-color: var(--color-slate-100);
   text-decoration: none;
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Color Themes */

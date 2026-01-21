@@ -47,12 +47,11 @@
       tabindex="0"
     >
       <div class="color-strip" [ngClass]="'color-theme-' + col.theme"></div>
+
       <div class="card-content">
         <div class="card-header">
           <h3>
-            <a [routerLink]="['/collections', col.id]" class="card-link">
-              {{ col.name }}
-            </a>
+            <span class="card-link">{{ col.name }}</span>
           </h3>
 
           <span class="book-count" title="Books in collection">

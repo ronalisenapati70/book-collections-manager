@@ -1,7 +1,7 @@
 <div class="page-container">
   <header class="page-header">
-    <a routerLink="/books" class="back-link"
-      ><svg
+    <a routerLink="/books" class="back-link">
+      <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -102,6 +102,7 @@
         >
           Update Book
         </button>
+
         <ng-template #saveLabel>
           <button type="submit" [disabled]="bookForm.invalid" class="button button-primary">
             Save Book

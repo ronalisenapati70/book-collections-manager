@@ -1,11 +1,11 @@
-import { Component, EventEmitter, Input, Output, computed, signal } from '@angular/core';
+import { Component, EventEmitter, Output, computed, inject, signal } from '@angular/core';
 import { CollectionModel } from '../../../collections/models/collections.model';
-import { MOCK_BOOKS, MOCK_COLLECTIONS } from '../../../../core/mock-data/mock-data.component';
 import { BookModel } from '../../models/books.model';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
+import { LibraryApiService } from '../../../../core/api/library-api.service';
 
 @Component({
   selector: 'app-book-list',
@@ -15,38 +15,30 @@ import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confi
   styleUrl: './book-list.component.scss',
 })
 export class BookListComponent {
-  // 👇 Mock data now lives outside the component
-  private collectionsSignal = signal<CollectionModel[]>([...MOCK_COLLECTIONS]);
-  private booksSignal = signal<BookModel[]>([...MOCK_BOOKS]);
+  private api = inject(LibraryApiService);
+
+  books = signal<BookModel[]>([]);
+  collections = signal<CollectionModel[]>([]);
 
   bookToDelete = signal<BookModel | null>(null);
 
   filterControl = new FormControl('', { nonNullable: true });
   filterQuery = signal('');
 
-  @Input() set collections(value: CollectionModel[] | null | undefined) {
-    if (value) this.collectionsSignal.set([...value]);
-  }
-
-  @Input() set books(value: BookModel[] | null | undefined) {
-    if (value) this.booksSignal.set([...value]);
-  }
-
-  @Output() bookDeleted = new EventEmitter<BookModel>();
-  @Output() deleteCanceled = new EventEmitter<void>();
-
   constructor() {
+    this.api.getCollections().subscribe((c) => this.collections.set(c));
+    this.api.getBooks().subscribe((b) => this.books.set(b));
     this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
   }
 
-  hasCollections = computed(() => this.collectionsSignal().length > 0);
+  hasCollections = computed(() => this.collections().length > 0);
 
   getCollectionName = (id: number): string | undefined =>
-    this.collectionsSignal().find((c) => c.id === id)?.name;
+    this.collections().find((c) => c.id === id)?.name;
 
   filteredBooks = computed(() => {
     const query = this.filterQuery().trim().toLowerCase();
-    const items = this.booksSignal();
+    const items = this.books();
 
     if (!query) return items;
 
@@ -66,16 +58,16 @@ export class BookListComponent {
 
   cancelDeleteBook() {
     this.bookToDelete.set(null);
-    this.deleteCanceled.emit();
   }
 
   deleteBook() {
     const book = this.bookToDelete();
     if (!book) return;
 
-    this.booksSignal.update((prev) => prev.filter((b) => b.id !== book.id));
-    this.bookToDelete.set(null);
-    this.bookDeleted.emit(book);
+    this.api.deleteBook(book.id).subscribe(() => {
+      this.books.update((prev) => prev.filter((b) => b.id !== book.id));
+      this.bookToDelete.set(null);
+    });
   }
 
   trackByBookId(_index: number, item: BookModel) {

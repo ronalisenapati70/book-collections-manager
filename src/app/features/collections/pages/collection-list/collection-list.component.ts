@@ -1,10 +1,12 @@
-import { Component, computed, signal } from '@angular/core';
-import { CollectionModel } from '../../models/collections.model';
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
-import { MOCK_COLLECTIONS } from '../../../../core/mock-data/mock-data.component';
+import { LibraryApiService } from '../../../../core/api/library-api.service';
+import { CollectionModel } from '../../models/collections.model';
+import { BookModel } from '../../../books/models/books.model';
 
 @Component({
   selector: 'app-collection-list',
@@ -14,17 +16,20 @@ import { MOCK_COLLECTIONS } from '../../../../core/mock-data/mock-data.component
   styleUrl: './collection-list.component.scss',
 })
 export class CollectionListComponent {
-  // Mock local state for now (replace with NgRx/store later)
-  collections = signal<CollectionModel[]>([...MOCK_COLLECTIONS]);
+  private api = inject(LibraryApiService);
 
-  // Delete confirmation (we’ll hook this to a confirm dialog component later)
+  collections = signal<CollectionModel[]>([]);
+  private books = signal<BookModel[]>([]);
+
   itemToDelete = signal<CollectionModel | null>(null);
 
-  // Filter input
   filterControl = new FormControl('', { nonNullable: true });
   filterQuery = signal('');
 
   constructor() {
+    this.api.getCollections().subscribe((c) => this.collections.set(c));
+    this.api.getBooks().subscribe((b) => this.books.set(b));
+
     this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
   }
 
@@ -36,13 +41,13 @@ export class CollectionListComponent {
 
     return items.filter((c) => {
       const name = c.name.toLowerCase();
-      const desc = c.description.toLowerCase();
+      const desc = (c.description ?? '').toLowerCase();
       return name.includes(query) || desc.includes(query);
     });
   });
-  // Temporary stub until books exist
-  getBooksCountByCollectionId(_collectionId: number): number {
-    return 0;
+
+  getBooksCountByCollectionId(collectionId: number): number {
+    return this.books().filter((b) => b.collectionId === collectionId).length;
   }
 
   confirmDelete(col: CollectionModel) {
@@ -57,8 +62,11 @@ export class CollectionListComponent {
     const col = this.itemToDelete();
     if (!col) return;
 
-    this.collections.update((prev) => prev.filter((c) => c.id !== col.id));
-    this.itemToDelete.set(null);
+    this.api.deleteCollection(col.id).subscribe(() => {
+      this.collections.update((prev) => prev.filter((c) => c.id !== col.id));
+      this.books.update((prev) => prev.filter((b) => b.collectionId !== col.id)); // optional
+      this.itemToDelete.set(null);
+    });
   }
 
   trackById(_index: number, item: CollectionModel) {
