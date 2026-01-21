@@ -38,7 +38,7 @@
           <div class="form-group">
             <label class="form-label">Collection</label>
             <select formControlName="collectionId" class="form-input form-select">
-              <option [ngValue]="null" disabled>Select a collection</option>
+              <option [ngValue]="null">No collection</option>
 
               <option
                 *ngFor="let col of collections(); trackBy: trackByCollectionId"
@@ -48,14 +48,6 @@
               </option>
             </select>
 
-            <p
-              class="error-message"
-              *ngIf="
-                bookForm.controls.collectionId.invalid && bookForm.controls.collectionId.touched
-              "
-            >
-              Please select a collection
-            </p>
           </div>
 
           <div class="form-group">

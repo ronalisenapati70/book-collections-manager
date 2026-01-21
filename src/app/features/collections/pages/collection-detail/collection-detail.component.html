@@ -28,8 +28,9 @@
             Edit Collection
           </button>
           <a
+            *ngIf="collectionId() !== null"
             [routerLink]="['/books/new']"
-            [queryParams]="{ collectionId: col.id }"
+            [queryParams]="{ collectionId: collectionId()! }"
             class="button-add"
           >
             + Add Book
@@ -106,12 +107,7 @@
     <div class="book-grid">
       <div class="book-card" *ngFor="let book of filteredBooks(); trackBy: trackByBookId">
         <div class="card-image-wrapper">
-          <ng-container *ngIf="book.coverUrl; else bookPlaceholder">
-            <img [src]="book.coverUrl" [alt]="book.title" class="card-image" loading="lazy" />
-          </ng-container>
-          <ng-template #bookPlaceholder>
-            <div class="book-cover-placeholder"></div>
-          </ng-template>
+          <div class="book-cover-placeholder"></div>
           <div class="image-overlay">
             <span class="rating">
               {{ stars(book.rating) }}
@@ -126,7 +122,8 @@
           </p>
           <div class="card-actions">
             <a
-              [routerLink]="['/books', book.id]"
+              *ngIf="collectionId() as colId"
+              [routerLink]="['/collections', colId, 'books', book.id]"
               class="action-button edit-button"
               aria-label="View or edit book"
               title="View or edit book"

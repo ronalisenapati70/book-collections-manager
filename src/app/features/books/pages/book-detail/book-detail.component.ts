@@ -1,12 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
-import { LibraryApiService } from '../../../../core/api/library-api.service';
 import { BookModel } from '../../models/books.model';
-import { CollectionModel } from '../../../collections/models/collections.model';
+import { loadBooks, updateBook, deleteBook } from '../../store/books.actions';
+import { loadCollections } from '../../../collections/store/collections.actions';
+import { selectAllBooks, selectBooksLoading } from '../../store/books.selectors';
+import { selectAllCollections } from '../../../collections/store/collections.selectors';
 
 @Component({
   selector: 'app-book-detail',
@@ -18,14 +22,11 @@ import { CollectionModel } from '../../../collections/models/collections.model';
 export class BookDetailComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private api = inject(LibraryApiService);
+  private store = inject(Store);
 
-  // Loaded state from API
-  private _book = signal<BookModel | null>(null);
-  private _collections = signal<CollectionModel[]>([]);
-
-  // Exposed for template usage
-  collections = computed(() => this._collections());
+  books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
+  booksLoading = toSignal(this.store.select(selectBooksLoading), { initialValue: true });
+  collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
 
   private bookId = signal<number | null>(null);
 
@@ -33,7 +34,7 @@ export class BookDetailComponent {
   bookToDelete = signal<BookModel | null>(null);
 
   bookForm = new FormGroup({
-    collectionId: new FormControl<number | null>(null, { validators: [Validators.required] }),
+    collectionId: new FormControl<number | null>(null),
     title: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(2)],
@@ -44,20 +45,24 @@ export class BookDetailComponent {
   });
 
   // Template computeds
-  book = computed(() => this._book() ?? undefined);
-
-  collection = computed(() => {
-    const b = this._book();
-    if (!b) return undefined;
-    return this._collections().find((c) => c.id === b.collectionId);
+  book = computed(() => {
+    const id = this.bookId();
+    if (id === null || Number.isNaN(id)) return undefined;
+    return this.books().find((b) => b.id === id);
   });
 
-  isEditMode = computed(() => !!this._book());
-  editingBook = computed(() => this._book());
+  collection = computed(() => {
+    const b = this.book();
+    if (!b) return undefined;
+    return this.collections().find((c) => c.id === b.collectionId);
+  });
+
+  isEditMode = computed(() => !!this.book());
+  editingBook = computed(() => this.book());
 
   constructor() {
-    // Load collections once (for collection link / optional display)
-    this.api.getCollections().subscribe((c) => this._collections.set(c));
+    this.store.dispatch(loadCollections());
+    this.store.dispatch(loadBooks());
 
     // Load book whenever route param changes
     this.route.paramMap.subscribe((pm) => {
@@ -67,29 +72,21 @@ export class BookDetailComponent {
 
       // reset modal state on route change
       this.bookToDelete.set(null);
+    });
 
-      if (id === null || Number.isNaN(id)) {
-        this._book.set(null);
+    effect(() => {
+      const b = this.book();
+      if (!b) {
         this.resetFormEmpty();
         return;
       }
 
-      this.api.getBook(id).subscribe({
-        next: (b) => {
-          this._book.set(b);
-          this.bookForm.reset({
-            collectionId: b.collectionId,
-            title: b.title,
-            author: b.author,
-            rating: b.rating,
-            description: b.description,
-          });
-        },
-        error: () => {
-          // If API returns 404, show "not found" state in template
-          this._book.set(null);
-          this.resetFormEmpty();
-        },
+      this.bookForm.reset({
+        collectionId: b.collectionId,
+        title: b.title,
+        author: b.author,
+        rating: b.rating,
+        description: b.description,
       });
     });
   }
@@ -114,23 +111,25 @@ export class BookDetailComponent {
       return;
     }
 
-    const current = this._book();
+    const current = this.book();
     if (!current) return;
 
     const value = this.bookForm.getRawValue();
 
     const updated: BookModel = {
       id: current.id,
-      collectionId: value.collectionId!,
+      collectionId:
+        value.collectionId === null || value.collectionId === undefined
+          ? null
+          : Number(value.collectionId),
       title: value.title,
       author: value.author,
-      rating: value.rating,
+      rating: Number(value.rating),
       description: value.description,
     };
 
-    this.api.updateBook(updated).subscribe(() => {
-      this.router.navigateByUrl('/books');
-    });
+    this.store.dispatch(updateBook({ book: updated }));
+    this.router.navigateByUrl('/books');
   }
 
   confirmDelete(book: BookModel): void {
@@ -141,9 +140,8 @@ export class BookDetailComponent {
     const b = this.bookToDelete();
     if (!b) return;
 
-    this.api.deleteBook(b.id).subscribe(() => {
-      this.bookToDelete.set(null);
-      this.router.navigateByUrl('/books');
-    });
+    this.store.dispatch(deleteBook({ id: b.id }));
+    this.bookToDelete.set(null);
+    this.router.navigateByUrl('/books');
   }
 }

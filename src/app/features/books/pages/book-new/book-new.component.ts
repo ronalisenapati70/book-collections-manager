@@ -1,11 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 
-import { LibraryApiService } from '../../../../core/api/library-api.service';
 import { BookModel } from '../../models/books.model';
 import { CollectionModel } from '../../../collections/models/collections.model';
+import { loadBooks, createBook, updateBook } from '../../store/books.actions';
+import { loadCollections } from '../../../collections/store/collections.actions';
+import { selectAllBooks } from '../../store/books.selectors';
+import { selectAllCollections } from '../../../collections/store/collections.selectors';
 
 @Component({
   selector: 'app-book-new',
@@ -17,18 +22,22 @@ import { CollectionModel } from '../../../collections/models/collections.model';
 export class BookNewComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private api = inject(LibraryApiService);
+  private store = inject(Store);
 
-  collections = signal<CollectionModel[]>([]);
+  collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
+  books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
 
   bookId = signal<number | null>(null);
   isEditMode = computed(() => this.bookId() !== null);
 
-  private _editingBook = signal<BookModel | null>(null);
-  editingBook = computed(() => this._editingBook());
+  editingBook = computed(() => {
+    const id = this.bookId();
+    if (id === null || Number.isNaN(id)) return undefined;
+    return this.books().find((b) => b.id === id);
+  });
 
   bookForm = new FormGroup({
-    collectionId: new FormControl<number | null>(null, { validators: [Validators.required] }),
+    collectionId: new FormControl<number | null>(null),
     title: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(2)],
@@ -39,8 +48,8 @@ export class BookNewComponent {
   });
 
   constructor() {
-    // Load collections for dropdown
-    this.api.getCollections().subscribe((c) => this.collections.set(c));
+    this.store.dispatch(loadCollections());
+    this.store.dispatch(loadBooks());
 
     // Preselect collectionId when coming from collection detail via query param
     this.route.queryParamMap.subscribe((qp) => {
@@ -55,21 +64,29 @@ export class BookNewComponent {
       const raw = pm.get('bookId'); // change to 'id' if your route uses :id
       const id = raw ? Number(raw) : null;
       this.bookId.set(id);
+    });
 
-      if (id === null) {
-        this._editingBook.set(null);
+    effect(() => {
+      const book = this.editingBook();
+      if (!book) {
+        if (this.isEditMode()) {
+          this.bookForm.reset({
+            collectionId: null,
+            title: '',
+            author: '',
+            rating: 5,
+            description: '',
+          });
+        }
         return;
       }
 
-      this.api.getBook(id).subscribe((b) => {
-        this._editingBook.set(b);
-        this.bookForm.reset({
-          collectionId: b.collectionId,
-          title: b.title,
-          author: b.author,
-          rating: b.rating,
-          description: b.description,
-        });
+      this.bookForm.reset({
+        collectionId: book.collectionId,
+        title: book.title,
+        author: book.author,
+        rating: book.rating,
+        description: book.description,
       });
     });
   }
@@ -86,32 +103,35 @@ export class BookNewComponent {
       const id = this.bookId()!;
       const updated: BookModel = {
         id,
-        collectionId: value.collectionId!,
+        collectionId:
+          value.collectionId === null || value.collectionId === undefined
+            ? null
+            : Number(value.collectionId),
         title: value.title,
         author: value.author,
-        rating: value.rating,
+        rating: Number(value.rating),
         description: value.description,
       };
 
-      this.api.updateBook(updated).subscribe(() => {
-        this.router.navigateByUrl('/books');
-      });
+      this.store.dispatch(updateBook({ book: updated }));
+      this.router.navigateByUrl('/books');
 
       return;
     }
 
-    const created: BookModel = {
-      id: 0, // in-memory API will assign the next id
-      collectionId: value.collectionId!,
+    const created = {
+      collectionId:
+        value.collectionId === null || value.collectionId === undefined
+          ? null
+          : Number(value.collectionId),
       title: value.title,
       author: value.author,
-      rating: value.rating,
+      rating: Number(value.rating),
       description: value.description,
     };
 
-    this.api.createBook(created).subscribe(() => {
-      this.router.navigateByUrl('/books');
-    });
+    this.store.dispatch(createBook({ book: created }));
+    this.router.navigateByUrl('/books');
   }
 
   trackByCollectionId(_index: number, item: CollectionModel) {

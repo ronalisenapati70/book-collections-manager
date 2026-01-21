@@ -4,6 +4,21 @@ import { Observable } from 'rxjs';
 import { CollectionModel } from '../../features/collections/models/collections.model';
 import { BookModel } from '../../features/books/models/books.model';
 
+export interface NewCollectionModel {
+  name: string;
+  description: string;
+  createdAt: string;
+  theme: string;
+}
+
+export interface NewBookModel {
+  collectionId: number | null;
+  title: string;
+  author: string;
+  description: string;
+  rating: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LibraryApiService {
   private readonly baseUrl = '/api';
@@ -19,7 +34,7 @@ export class LibraryApiService {
     return this.http.get<CollectionModel>(`${this.baseUrl}/collections/${id}`);
   }
 
-  createCollection(collection: CollectionModel): Observable<CollectionModel> {
+  createCollection(collection: NewCollectionModel): Observable<CollectionModel> {
     return this.http.post<CollectionModel>(`${this.baseUrl}/collections`, collection);
   }
 
@@ -43,7 +58,7 @@ export class LibraryApiService {
     return this.http.get<BookModel>(`${this.baseUrl}/books/${id}`);
   }
 
-  createBook(book: BookModel): Observable<BookModel> {
+  createBook(book: NewBookModel): Observable<BookModel> {
     return this.http.post<BookModel>(`${this.baseUrl}/books`, book);
   }
 

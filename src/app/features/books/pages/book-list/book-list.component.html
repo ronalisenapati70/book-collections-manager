@@ -5,14 +5,7 @@
       <p>View and manage your entire library across all collections</p>
     </div>
 
-    <a
-      routerLink="/books/new"
-      class="button button-primary"
-      [class.disabled]="!hasCollections()"
-      [attr.aria-disabled]="!hasCollections()"
-      [title]="!hasCollections() ? 'Create a collection first' : 'Add a new book'"
-      (click)="!hasCollections() && $event.preventDefault()"
-    >
+    <a routerLink="/books/new" class="button button-primary">
       <span class="add-icon">+</span> Add Book
     </a>
   </header>
@@ -50,12 +43,7 @@
   <div class="book-grid">
     <div class="book-card" *ngFor="let book of filteredBooks(); trackBy: trackByBookId">
       <div class="card-image-wrapper" aria-hidden="true">
-        <ng-container *ngIf="book.coverUrl; else bookPlaceholder">
-          <img [src]="book.coverUrl" [alt]="book.title" class="card-image" loading="lazy" />
-        </ng-container>
-        <ng-template #bookPlaceholder>
-          <div class="book-cover-placeholder"></div>
-        </ng-template>
+        <div class="book-cover-placeholder"></div>
         <div class="image-overlay">
           <span class="rating">{{ stars(book.rating) }}</span>
         </div>

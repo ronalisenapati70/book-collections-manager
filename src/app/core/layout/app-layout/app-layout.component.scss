@@ -3,7 +3,7 @@
   grid-template-rows: auto auto 1fr;
   min-height: 100vh;
   font-family: 'Space Grotesk', 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
-  background: var(--color-slate-50);
+  background: transparent;
   color: var(--color-slate-900);
 }
 
@@ -82,5 +82,5 @@ h1 {
 }
 
 .content {
-  padding: 24px;
+  padding: 16px;
 }

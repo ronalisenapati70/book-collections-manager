@@ -1,5 +1,5 @@
 <div class="page-container">
-  <ng-container *ngIf="book() as currentBook; else notFound">
+  <ng-container *ngIf="book() as currentBook; else pendingOrNotFound">
     <header class="page-header">
       <a routerLink="/books" class="back-link">
         <svg
@@ -19,17 +19,8 @@
         Back to All Books
       </a>
 
-      <h1>
-        <ng-container *ngIf="isEditMode(); else addTitle">Edit Book</ng-container>
-        <ng-template #addTitle>Add New Book</ng-template>
-      </h1>
-
-      <p>
-        <ng-container *ngIf="isEditMode(); else addSubtitle">
-          Update the details for "{{ editingBook()?.title }}"
-        </ng-container>
-        <ng-template #addSubtitle> Add a new book to your library. </ng-template>
-      </p>
+      <h1>Edit Book</h1>
+      <p>Update the details for "{{ currentBook.title }}"</p>
     </header>
 
     <div class="form-container">
@@ -39,20 +30,12 @@
             <div class="form-group">
               <label class="form-label">Collection</label>
               <select formControlName="collectionId" class="form-input form-select">
-                <option [ngValue]="null" disabled>Select a collection</option>
+                <option [ngValue]="null">No collection</option>
                 <option *ngFor="let col of collections(); trackBy: trackById" [ngValue]="col.id">
                   {{ col.name }}
                 </option>
               </select>
 
-              <p
-                class="error-message"
-                *ngIf="
-                  bookForm.get('collectionId')?.invalid && bookForm.get('collectionId')?.touched
-                "
-              >
-                Please select a collection
-              </p>
             </div>
 
             <div class="form-group">
@@ -104,11 +87,18 @@
     </div>
   </ng-container>
 
-  <ng-template #notFound>
-    <div class="not-found">
+  <ng-template #pendingOrNotFound>
+    <div class="not-found" *ngIf="!booksLoading(); else loadingState">
       <h2>Book not found</h2>
       <p>The book you are looking for does not exist.</p>
       <a routerLink="/books" class="button button-primary">Back to All Books</a>
+    </div>
+  </ng-template>
+
+  <ng-template #loadingState>
+    <div class="not-found">
+      <h2>Loading book...</h2>
+      <p>Please wait while we fetch the book details.</p>
     </div>
   </ng-template>
 

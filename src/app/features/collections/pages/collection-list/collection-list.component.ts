@@ -1,12 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Store } from '@ngrx/store';
 
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
-import { LibraryApiService } from '../../../../core/api/library-api.service';
 import { CollectionModel } from '../../models/collections.model';
-import { BookModel } from '../../../books/models/books.model';
+import { loadCollections, deleteCollection } from '../../store/collections.actions';
+import { loadBooks } from '../../../books/store/books.actions';
+import { selectAllCollections } from '../../store/collections.selectors';
+import { selectAllBooks } from '../../../books/store/books.selectors';
 
 @Component({
   selector: 'app-collection-list',
@@ -16,10 +20,10 @@ import { BookModel } from '../../../books/models/books.model';
   styleUrl: './collection-list.component.scss',
 })
 export class CollectionListComponent {
-  private api = inject(LibraryApiService);
+  private store = inject(Store);
 
-  collections = signal<CollectionModel[]>([]);
-  private books = signal<BookModel[]>([]);
+  collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
+  private books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
 
   itemToDelete = signal<CollectionModel | null>(null);
 
@@ -27,8 +31,8 @@ export class CollectionListComponent {
   filterQuery = signal('');
 
   constructor() {
-    this.api.getCollections().subscribe((c) => this.collections.set(c));
-    this.api.getBooks().subscribe((b) => this.books.set(b));
+    this.store.dispatch(loadCollections());
+    this.store.dispatch(loadBooks());
 
     this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
   }
@@ -62,11 +66,8 @@ export class CollectionListComponent {
     const col = this.itemToDelete();
     if (!col) return;
 
-    this.api.deleteCollection(col.id).subscribe(() => {
-      this.collections.update((prev) => prev.filter((c) => c.id !== col.id));
-      this.books.update((prev) => prev.filter((b) => b.collectionId !== col.id)); // optional
-      this.itemToDelete.set(null);
-    });
+    this.store.dispatch(deleteCollection({ id: col.id }));
+    this.itemToDelete.set(null);
   }
 
   trackById(_index: number, item: CollectionModel) {

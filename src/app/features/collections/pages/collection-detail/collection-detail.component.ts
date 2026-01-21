@@ -1,12 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Store } from '@ngrx/store';
 
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
-import { LibraryApiService } from '../../../../core/api/library-api.service';
 import { BookModel } from '../../../books/models/books.model';
-import { CollectionModel } from '../../models/collections.model';
+import { loadCollections, updateCollection } from '../../store/collections.actions';
+import { loadBooks, deleteBook } from '../../../books/store/books.actions';
+import { selectAllCollections } from '../../store/collections.selectors';
+import { selectAllBooks } from '../../../books/store/books.selectors';
 
 @Component({
   selector: 'app-collection-detail',
@@ -17,7 +21,7 @@ import { CollectionModel } from '../../models/collections.model';
 })
 export class CollectionDetailComponent {
   private route = inject(ActivatedRoute);
-  private api = inject(LibraryApiService);
+  private store = inject(Store);
 
   collectionId = signal<number | null>(null);
   bookToDelete = signal<BookModel | null>(null);
@@ -51,13 +55,12 @@ export class CollectionDetailComponent {
     }),
   });
 
-  // API-backed state
-  private _collection = signal<CollectionModel | null>(null);
-  private _books = signal<BookModel[]>([]);
+  collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
+  private books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
 
   constructor() {
-    // Load all books once (small app). Alternatively: filter on server later.
-    this.api.getBooks().subscribe((b) => this._books.set(b));
+    this.store.dispatch(loadCollections());
+    this.store.dispatch(loadBooks());
 
     // route param: /collections/:collectionId
     this.route.paramMap.subscribe((params) => {
@@ -67,36 +70,36 @@ export class CollectionDetailComponent {
 
       // reset modal when navigating between collections
       this.bookToDelete.set(null);
-
-      if (id === null || Number.isNaN(id)) {
-        this._collection.set(null);
-        return;
-      }
-
-      // load the collection
-      this.api.getCollection(id).subscribe({
-        next: (c) => {
-          this._collection.set(c);
-          this.collectionForm.patchValue({
-            name: c.name,
-            description: c.description,
-            theme: c.theme as any,
-          });
-        },
-        error: () => this._collection.set(null),
-      });
     });
 
     this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
+
+    effect(() => {
+      const c = this.collection();
+      if (!c) {
+        this.collectionForm.reset({ name: '', description: '', theme: 'indigo' });
+        return;
+      }
+
+      this.collectionForm.patchValue({
+        name: c.name,
+        description: c.description,
+        theme: c.theme as (typeof this.colors)[number],
+      });
+    });
   }
 
   // Computeds for template
-  collection = computed(() => this._collection() ?? undefined);
+  collection = computed(() => {
+    const id = this.collectionId();
+    if (id === null || Number.isNaN(id)) return undefined;
+    return this.collections().find((c) => c.id === id);
+  });
 
   collectionBooks = computed(() => {
     const id = this.collectionId();
-    if (!id) return [];
-    return this._books().filter((b) => b.collectionId === id);
+    if (id === null || Number.isNaN(id)) return [];
+    return this.books().filter((b) => b.collectionId === id);
   });
 
   filteredBooks = computed(() => {
@@ -122,24 +125,22 @@ export class CollectionDetailComponent {
     const book = this.bookToDelete();
     if (!book) return;
 
-    this.api.deleteBook(book.id).subscribe(() => {
-      this._books.update((prev) => prev.filter((b) => b.id !== book.id));
-      this.bookToDelete.set(null);
-    });
+    this.store.dispatch(deleteBook({ id: book.id }));
+    this.bookToDelete.set(null);
   }
 
   startEditCollection() {
-    if (!this._collection()) return;
+    if (!this.collection()) return;
     this.isEditing.set(true);
   }
 
   cancelEditCollection() {
-    const c = this._collection();
+    const c = this.collection();
     if (c) {
       this.collectionForm.patchValue({
         name: c.name,
         description: c.description,
-        theme: c.theme as any,
+        theme: c.theme as (typeof this.colors)[number],
       });
     }
     this.isEditing.set(false);
@@ -147,7 +148,7 @@ export class CollectionDetailComponent {
 
   saveCollection() {
     if (this.collectionForm.invalid) return;
-    const c = this._collection();
+    const c = this.collection();
     if (!c) return;
 
     const updated = {
@@ -157,20 +158,9 @@ export class CollectionDetailComponent {
       theme: this.collectionForm.value.theme!,
     };
 
-    // Optimistic UI update so theme/name changes render immediately.
-    this._collection.set(updated);
     this.isEditing.set(false);
 
-    this.api.updateCollection(updated).subscribe({
-      next: (saved) => {
-        if (saved && saved.id) {
-          this._collection.set(saved);
-        } else {
-          this._collection.set(updated);
-        }
-      },
-      error: () => this._collection.set(c),
-    });
+    this.store.dispatch(updateCollection({ collection: updated }));
   }
 
   trackByColor(_index: number, color: string) {

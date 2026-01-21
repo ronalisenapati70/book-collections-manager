@@ -26,6 +26,7 @@ Then open `http://localhost:4200/`.
 - Filter collections and books
 - In-memory API for simulated backend
 - Typed reactive forms
+- NgRx store + effects for collections and books
 
 ## Development server
 
