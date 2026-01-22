@@ -28,6 +28,14 @@ Then open `http://localhost:4200/`.
 - Typed reactive forms
 - NgRx store + effects for collections and books
 
+## Tests
+
+Run the basic component and route tests with:
+
+```bash
+npm test
+```
+
 ## Development server
 
 To start a local development server, run:
