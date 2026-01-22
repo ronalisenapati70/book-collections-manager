@@ -14,10 +14,10 @@ import { BookModel } from '../../models/books.model';
 })
 export class BookCardComponent {
   @Input({ required: true }) book!: BookModel;
-  @Input({ required: true }) cardLink!: string | any[];
+  @Input({ required: true }) cardLink!: string | Array<string | number>;
   @Input() theme = 'slate';
   @Input() collectionName?: string;
-  @Input() collectionLink?: string | any[] | null;
+  @Input() collectionLink?: string | Array<string | number> | null;
 
   @Output() remove = new EventEmitter<BookModel>();
 

@@ -61,6 +61,12 @@ Run the basic component and route tests with:
 npm test
 ```
 
+## Lint
+
+```bash
+npm run lint
+```
+
 ## Development server
 
 To start a local development server, run:

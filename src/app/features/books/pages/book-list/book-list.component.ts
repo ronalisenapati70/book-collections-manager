@@ -85,7 +85,7 @@ export class BookListComponent implements OnInit {
     return item.id;
   }
 
-  getCollectionLink(id: number | null): string | any[] | null {
+  getCollectionLink(id: number | null): string | Array<string | number> | null {
     return id === null ? null : ['/collections', id];
   }
 }

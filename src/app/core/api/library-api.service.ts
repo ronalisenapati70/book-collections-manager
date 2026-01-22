@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CollectionModel } from '../../features/collections/models/collections.model';
@@ -20,9 +20,8 @@ export interface NewBookModel {
 
 @Injectable({ providedIn: 'root' })
 export class LibraryApiService {
+  private http = inject(HttpClient);
   private readonly baseUrl = '/api';
-
-  constructor(private http: HttpClient) {}
 
   // Collections
   getCollections(): Observable<CollectionModel[]> {

@@ -150,7 +150,7 @@
     [isOpen]="!!itemToDelete()"
     [title]="'Delete ' + (itemToDelete()?.name || 'collection')"
     message="This action cannot be undone. Are you sure you want to continue?"
-    (onConfirm)="deleteCollection()"
-    (onCancel)="itemToDelete.set(null)"
+    (confirmed)="deleteCollection()"
+    (cancelled)="itemToDelete.set(null)"
   ></app-confirm-modal>
 </div>

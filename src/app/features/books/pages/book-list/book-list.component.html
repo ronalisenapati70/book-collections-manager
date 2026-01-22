@@ -83,7 +83,7 @@
     [isOpen]="!!bookToDelete()"
     [title]="'Remove ' + (bookToDelete()?.title || 'book')"
     message="This action cannot be undone. Are you sure you want to continue?"
-    (onConfirm)="deleteBook()"
-    (onCancel)="cancelDeleteBook()"
+    (confirmed)="deleteBook()"
+    (cancelled)="cancelDeleteBook()"
   ></app-confirm-modal>
 </div>

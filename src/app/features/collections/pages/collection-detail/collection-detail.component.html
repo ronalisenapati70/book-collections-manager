@@ -94,7 +94,7 @@
       <app-book-card
         *ngFor="let book of filteredBooks(); trackBy: trackByBookId"
         [book]="book"
-        [cardLink]="['/collections', collectionId(), 'books', book.id]"
+        [cardLink]="['/collections', collectionId()!, 'books', book.id]"
         [theme]="getCollectionTheme()"
         (remove)="confirmDeleteBook($event)"
       ></app-book-card>
@@ -110,6 +110,6 @@
   [isOpen]="!!bookToDelete()"
   title="Remove Book"
   [message]="'Are you sure you want to remove ' + bookToDelete()?.title + ' from this collection?'"
-  (onConfirm)="deleteBook()"
-  (onCancel)="bookToDelete.set(null)"
+  (confirmed)="deleteBook()"
+  (cancelled)="bookToDelete.set(null)"
 ></app-confirm-modal>
