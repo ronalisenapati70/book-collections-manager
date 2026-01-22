@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -8,22 +8,23 @@ import { Actions, ofType } from '@ngrx/effects';
 import { take } from 'rxjs';
 
 import { createCollection, createCollectionSuccess } from '../../store/collections.actions';
-import { loadBooks, updateBook } from '../../../books/store/books.actions';
+import { loadBooks } from '../../../books/store/books.actions';
 import { selectAllBooks } from '../../../books/store/books.selectors';
-import { BookModel } from '../../../books/models/books.model';
 import {
   COLLECTION_THEME_COLORS,
   CollectionThemeColor,
 } from '../../../../shared/constants/color-themes';
+import { CollectionFormComponent } from '../../components/collection-form/collection-form.component';
 
 @Component({
   selector: 'app-collection-new',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, CollectionFormComponent],
   templateUrl: './collection-new.component.html',
   styleUrl: './collection-new.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CollectionNewComponent {
+export class CollectionNewComponent implements OnInit {
   private router = inject(Router);
   private store = inject(Store);
   private actions$ = inject(Actions);
@@ -39,21 +40,16 @@ export class CollectionNewComponent {
       validators: [Validators.required, Validators.minLength(2)],
     }),
     description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    theme: new FormControl<CollectionThemeColor>('indigo', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
   });
   selectedBookIds = new FormControl<number[]>([], { nonNullable: true });
   readonly colors = COLLECTION_THEME_COLORS;
-  selectedColor = signal<CollectionThemeColor>('indigo');
 
-  constructor() {
+  ngOnInit(): void {
     this.store.dispatch(loadBooks());
-  }
-
-  trackByColor(_index: number, color: string) {
-    return color;
-  }
-
-  trackByBookId(_index: number, item: BookModel) {
-    return item.id;
   }
 
   toggleBookSelection(id: number, checked: boolean) {
@@ -68,21 +64,18 @@ export class CollectionNewComponent {
     const newCollection = {
       name: this.collectionForm.value.name!,
       description: this.collectionForm.value.description!,
-      theme: this.selectedColor(),
-      createdAt: new Date().toISOString(),
+      theme: this.collectionForm.value.theme!,
     };
 
-    this.store.dispatch(createCollection({ collection: newCollection }));
+    this.store.dispatch(
+      createCollection({
+        collection: newCollection,
+        selectedBookIds: this.selectedBookIds.value,
+      }),
+    );
     this.actions$
       .pipe(ofType(createCollectionSuccess), take(1))
-      .subscribe(({ collection }) => {
-        const selectedIds = this.selectedBookIds.value;
-        selectedIds.forEach((id) => {
-          const book = this.books().find((item) => item.id === id);
-          if (!book) return;
-          this.store.dispatch(updateBook({ book: { ...book, collectionId: collection.id } }));
-        });
-
+      .subscribe(() => {
         this.router.navigateByUrl('/collections');
       });
   }

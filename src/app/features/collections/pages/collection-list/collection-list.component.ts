@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -18,8 +18,9 @@ import { selectAllBooks } from '../../../books/store/books.selectors';
   imports: [RouterLink, ReactiveFormsModule, CommonModule, ConfirmModalComponent],
   templateUrl: './collection-list.component.html',
   styleUrl: './collection-list.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CollectionListComponent {
+export class CollectionListComponent implements OnInit {
   private store = inject(Store);
 
   collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
@@ -30,7 +31,7 @@ export class CollectionListComponent {
   filterControl = new FormControl('', { nonNullable: true });
   filterQuery = signal('');
 
-  constructor() {
+  ngOnInit(): void {
     this.store.dispatch(loadCollections());
     this.store.dispatch(loadBooks());
 

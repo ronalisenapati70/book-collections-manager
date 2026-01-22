@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BookModel } from '../../models/books.model';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -11,15 +11,17 @@ import { loadBooks, deleteBook } from '../../store/books.actions';
 import { loadCollections } from '../../../collections/store/collections.actions';
 import { selectAllBooks } from '../../store/books.selectors';
 import { selectAllCollections } from '../../../collections/store/collections.selectors';
+import { BookCardComponent } from '../../components/book-card/book-card.component';
 
 @Component({
   selector: 'app-book-list',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, CommonModule, ConfirmModalComponent],
+  imports: [RouterLink, ReactiveFormsModule, CommonModule, ConfirmModalComponent, BookCardComponent],
   templateUrl: './book-list.component.html',
   styleUrl: './book-list.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BookListComponent {
+export class BookListComponent implements OnInit {
   private store = inject(Store);
 
   books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
@@ -30,38 +32,17 @@ export class BookListComponent {
   filterControl = new FormControl('', { nonNullable: true });
   filterQuery = signal('');
 
-  constructor() {
+  ngOnInit(): void {
     this.store.dispatch(loadCollections());
     this.store.dispatch(loadBooks());
     this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
   }
 
-  hasCollections = computed(() => this.collections().length > 0);
-
   getCollectionName = (id: number | null): string | undefined =>
     id === null ? undefined : this.collections().find((c) => c.id === id)?.name;
 
-  getCollectionTheme = (id: number | null): string => {
-    const theme = id === null ? 'slate' : this.collections().find((c) => c.id === id)?.theme;
-    switch (theme) {
-      case 'indigo':
-        return 'rgba(99, 102, 241, 0.7)';
-      case 'emerald':
-        return 'rgba(16, 185, 129, 0.7)';
-      case 'rose':
-        return 'rgba(244, 63, 94, 0.65)';
-      case 'amber':
-        return 'rgba(245, 158, 11, 0.65)';
-      case 'cyan':
-        return 'rgba(6, 182, 212, 0.65)';
-      case 'violet':
-        return 'rgba(139, 92, 246, 0.7)';
-      case 'teal':
-        return 'rgba(20, 184, 166, 0.65)';
-      default:
-        return 'rgba(100, 116, 139, 0.35)';
-    }
-  };
+  getCollectionTheme = (id: number | null): string =>
+    id === null ? 'slate' : this.collections().find((c) => c.id === id)?.theme ?? 'slate';
 
   filteredBooks = computed(() => {
     const query = this.filterQuery().trim().toLowerCase();
@@ -99,8 +80,7 @@ export class BookListComponent {
     return item.id;
   }
 
-  stars(rating: number): string {
-    const r = Math.max(0, Math.min(5, rating));
-    return `Rating: ${r}`;
+  getCollectionLink(id: number | null): string | any[] | null {
+    return id === null ? null : ['/collections', id];
   }
 }

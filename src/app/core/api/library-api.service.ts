@@ -7,7 +7,6 @@ import { BookModel } from '../../features/books/models/books.model';
 export interface NewCollectionModel {
   name: string;
   description: string;
-  createdAt: string;
   theme: string;
 }
 
@@ -35,7 +34,11 @@ export class LibraryApiService {
   }
 
   createCollection(collection: NewCollectionModel): Observable<CollectionModel> {
-    return this.http.post<CollectionModel>(`${this.baseUrl}/collections`, collection);
+    const payload = {
+      ...collection,
+      createdAt: new Date().toISOString(),
+    };
+    return this.http.post<CollectionModel>(`${this.baseUrl}/collections`, payload);
   }
 
   updateCollection(collection: CollectionModel): Observable<CollectionModel> {

@@ -7,14 +7,14 @@ export class InMemoryDataService implements InMemoryDbService {
         id: 1,
         name: 'Productivity',
         description: 'Work smarter, not harder.',
-        theme: 'indigo', // ✅ FIXED
+        theme: 'indigo',
         createdAt: new Date('2025-01-01').toISOString(),
       },
       {
         id: 2,
         name: 'Fiction',
         description: 'Stories to unwind.',
-        theme: 'emerald', // ✅ FIXED
+        theme: 'emerald',
         createdAt: new Date('2025-02-10').toISOString(),
       },
       {

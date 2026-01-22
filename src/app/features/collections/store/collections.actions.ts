@@ -14,7 +14,7 @@ export const loadCollectionsFailure = createAction(
 
 export const createCollection = createAction(
   '[Collections] Create Collection',
-  props<{ collection: NewCollectionModel }>(),
+  props<{ collection: NewCollectionModel; selectedBookIds?: number[] }>(),
 );
 export const createCollectionSuccess = createAction(
   '[Collections] Create Collection Success',

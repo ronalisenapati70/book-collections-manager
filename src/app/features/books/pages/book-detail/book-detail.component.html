@@ -24,66 +24,12 @@
     </header>
 
     <div class="form-container">
-      <form class="edit-form" [formGroup]="bookForm" (ngSubmit)="saveBook()">
-        <div class="form-body">
-          <div class="form-left">
-            <div class="form-group">
-              <label class="form-label">Collection</label>
-              <select formControlName="collectionId" class="form-input form-select">
-                <option [ngValue]="null">No collection</option>
-                <option *ngFor="let col of collections(); trackBy: trackById" [ngValue]="col.id">
-                  {{ col.name }}
-                </option>
-              </select>
-
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Title</label>
-
-              <div class="input-with-button">
-                <input
-                  formControlName="title"
-                  type="text"
-                  class="form-input"
-                  placeholder="Enter book title"
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Author</label>
-              <div class="input-with-button">
-                <input formControlName="author" type="text" class="form-input" />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Rating</label>
-              <select formControlName="rating" class="form-input form-select">
-                <option [ngValue]="5">5 (Excellent)</option>
-                <option [ngValue]="4">4 (Great)</option>
-                <option [ngValue]="3">3 (Good)</option>
-                <option [ngValue]="2">2 (Fair)</option>
-                <option [ngValue]="1">1 (Poor)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-right">
-            <label class="form-label">Description</label>
-            <textarea formControlName="description" class="form-input form-textarea"></textarea>
-          </div>
-        </div>
-
-        <div class="form-footer">
-          <a routerLink="/books" class="button button-secondary">Cancel</a>
-          <button type="submit" [disabled]="bookForm.invalid" class="button button-primary">
-            <ng-container *ngIf="isEditMode(); else saveText">Update Book</ng-container>
-            <ng-template #saveText>Save Book</ng-template>
-          </button>
-        </div>
-      </form>
+      <app-book-form
+        [form]="bookForm"
+        [collections]="collections()"
+        [isEditMode]="true"
+        (submitted)="saveBook()"
+      ></app-book-form>
     </div>
   </ng-container>
 

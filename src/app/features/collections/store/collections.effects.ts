@@ -1,14 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, mergeMap, of, switchMap, withLatestFrom } from 'rxjs';
+import { Store } from '@ngrx/store';
 
 import { LibraryApiService } from '../../../core/api/library-api.service';
 import * as CollectionsActions from './collections.actions';
+import { selectAllBooks } from '../../books/store/books.selectors';
+import { updateBook } from '../../books/store/books.actions';
 
 @Injectable()
 export class CollectionsEffects {
   private actions$ = inject(Actions);
   private api = inject(LibraryApiService);
+  private store = inject(Store);
 
   loadCollections$ = createEffect(() =>
     this.actions$.pipe(
@@ -33,11 +37,22 @@ export class CollectionsEffects {
   createCollection$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CollectionsActions.createCollection),
-      switchMap(({ collection }) =>
+      withLatestFrom(this.store.select(selectAllBooks)),
+      switchMap(([{ collection, selectedBookIds }, books]) =>
         this.api.createCollection(collection).pipe(
-          map((created) =>
-            CollectionsActions.createCollectionSuccess({ collection: created }),
-          ),
+          mergeMap((created) => {
+            const updates = (selectedBookIds ?? [])
+              .map((id) => books.find((item) => item.id === id))
+              .filter((item): item is NonNullable<typeof item> => !!item)
+              .map((book) =>
+                updateBook({ book: { ...book, collectionId: created.id } }),
+              );
+
+            return [
+              CollectionsActions.createCollectionSuccess({ collection: created }),
+              ...updates,
+            ];
+          }),
           catchError((error) =>
             of(
               CollectionsActions.createCollectionFailure({

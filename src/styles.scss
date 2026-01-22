@@ -74,6 +74,9 @@ body {
 .color-theme-violet {
   background-color: rgba(139, 92, 246, 0.22);
 }
+.color-theme-slate {
+  background-color: rgba(100, 116, 139, 0.3);
+}
 
 /* Collection detail header + grid */
 .detail-header {
@@ -186,111 +189,6 @@ body {
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   padding-bottom: 5rem;
-}
-.collection-detail .book-card {
-  background-color: var(--color-white);
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-slate-200);
-  overflow: hidden;
-  transition:
-    box-shadow 0.2s,
-    transform 0.2s,
-    border-color 0.2s;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  cursor: pointer;
-}
-.collection-detail .book-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
-  border-color: var(--color-indigo-300);
-}
-.collection-detail .color-strip {
-  height: 0.5rem;
-  width: 100%;
-}
-.collection-detail .card-content {
-  padding: 1rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.collection-detail .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-.collection-detail .title {
-  font-weight: 700;
-  font-size: 1.125rem;
-  line-height: 1.3;
-  margin: 0;
-}
-.collection-detail .rating-pill {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-slate-100);
-  color: var(--color-slate-600);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-}
-.collection-detail .author {
-  color: var(--color-slate-500);
-  font-size: 0.875rem;
-  margin-bottom: 0.75rem;
-  font-weight: 500;
-}
-.collection-detail .description {
-  color: var(--color-slate-600);
-  font-size: 0.875rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.collection-detail .card-actions {
-  border-top: 1px solid var(--color-slate-100);
-  padding-top: 0.75rem;
-  margin-top: auto;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-.collection-detail .action-button {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  transition:
-    color 0.2s,
-    background-color 0.2s;
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.collection-detail .action-button .icon {
-  width: 1rem;
-  height: 1rem;
-  display: block;
-}
-.collection-detail .remove-button {
-  color: var(--color-slate-500);
-}
-.collection-detail .remove-button:hover {
-  color: var(--color-rose-700);
-  background-color: var(--color-rose-50);
 }
 .collection-detail .empty-state {
   grid-column: 1 / -1;

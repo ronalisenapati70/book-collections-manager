@@ -22,65 +22,15 @@
   </header>
 
   <div class="form-container">
-    <form [formGroup]="collectionForm" (ngSubmit)="createCollection()">
-      <div class="form-body">
-        <div class="form-group">
-          <label class="form-label">Name</label>
-          <input
-            formControlName="name"
-            type="text"
-            class="form-input"
-            placeholder="e.g., Summer Reading"
-          />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Description</label>
-          <input
-            formControlName="description"
-            type="text"
-            class="form-input"
-            placeholder="What's this collection about?"
-          />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Theme Color</label>
-          <div class="color-picker">
-            <button
-              type="button"
-              class="color-swatch"
-              *ngFor="let color of colors; trackBy: trackByColor"
-              (click)="selectedColor.set(color)"
-              [class]="'color-theme-' + color"
-              [class.selected]="selectedColor() === color"
-            ></button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Add Existing Books</label>
-          <div class="book-options" *ngIf="unassignedBooks().length; else noBooks">
-            <label
-              class="book-option"
-              *ngFor="let book of unassignedBooks(); trackBy: trackByBookId"
-            >
-              <input
-                type="checkbox"
-                [checked]="selectedBookIds.value.includes(book.id)"
-                (change)="toggleBookSelection(book.id, $any($event.target).checked)"
-              />
-              <span>{{ book.title }}</span>
-            </label>
-          </div>
-          <ng-template #noBooks>
-            <p class="book-empty">No unassigned books available.</p>
-          </ng-template>
-        </div>
-      </div>
-      <div class="form-footer">
-        <a routerLink="/collections" class="button button-secondary">Cancel</a>
-        <button type="submit" [disabled]="collectionForm.invalid" class="button button-primary">
-          Create Collection
-        </button>
-      </div>
-    </form>
+    <app-collection-form
+      [form]="collectionForm"
+      [colors]="colors"
+      [availableBooks]="unassignedBooks()"
+      [selectedBookIds]="selectedBookIds.value"
+      submitLabel="Create Collection"
+      cancelLink="/collections"
+      (submitted)="createCollection()"
+      (toggleBook)="toggleBookSelection($event.id, $event.checked)"
+    ></app-collection-form>
   </div>
 </div>

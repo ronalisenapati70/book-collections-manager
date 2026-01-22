@@ -1,11 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 
 import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
+import { BookFormComponent } from '../../components/book-form/book-form.component';
 import { BookModel } from '../../models/books.model';
 import { loadBooks, updateBook, deleteBook } from '../../store/books.actions';
 import { loadCollections } from '../../../collections/store/collections.actions';
@@ -15,11 +24,12 @@ import { selectAllCollections } from '../../../collections/store/collections.sel
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, CommonModule, ConfirmModalComponent],
+  imports: [RouterLink, CommonModule, ConfirmModalComponent, BookFormComponent],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BookDetailComponent {
+export class BookDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private store = inject(Store);
@@ -30,7 +40,6 @@ export class BookDetailComponent {
 
   private bookId = signal<number | null>(null);
 
-  // Confirm modal state
   bookToDelete = signal<BookModel | null>(null);
 
   bookForm = new FormGroup({
@@ -44,36 +53,21 @@ export class BookDetailComponent {
     description: new FormControl('', { nonNullable: true }),
   });
 
-  // Template computeds
+  // Finds the book based on route param bookId
   book = computed(() => {
     const id = this.bookId();
     if (id === null || Number.isNaN(id)) return undefined;
     return this.books().find((b) => b.id === id);
   });
 
+  // Finds the collection the current book belongs to
   collection = computed(() => {
     const b = this.book();
     if (!b) return undefined;
     return this.collections().find((c) => c.id === b.collectionId);
   });
 
-  isEditMode = computed(() => !!this.book());
-  editingBook = computed(() => this.book());
-
   constructor() {
-    this.store.dispatch(loadCollections());
-    this.store.dispatch(loadBooks());
-
-    // Load book whenever route param changes
-    this.route.paramMap.subscribe((pm) => {
-      const raw = pm.get('bookId');
-      const id = raw ? Number(raw) : null;
-      this.bookId.set(id);
-
-      // reset modal state on route change
-      this.bookToDelete.set(null);
-    });
-
     effect(() => {
       const b = this.book();
       if (!b) {
@@ -91,6 +85,21 @@ export class BookDetailComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.store.dispatch(loadCollections());
+    this.store.dispatch(loadBooks());
+
+    // Load book whenever route param changes
+    this.route.paramMap.subscribe((pm) => {
+      const raw = pm.get('bookId');
+      const id = raw ? Number(raw) : null;
+      this.bookId.set(id);
+
+      // reset modal state on route change
+      this.bookToDelete.set(null);
+    });
+  }
+
   private resetFormEmpty() {
     this.bookForm.reset({
       collectionId: null,
@@ -99,10 +108,6 @@ export class BookDetailComponent {
       rating: 5,
       description: '',
     });
-  }
-
-  trackById(_index: number, item: { id: number }): number {
-    return item.id;
   }
 
   saveBook(): void {
