@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnInit,
   computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -44,6 +45,7 @@ import { selectAllBooks, selectBooksError } from '../../../books/store/books.sel
 export class CollectionDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private store = inject(Store);
+  private destroyRef = inject(DestroyRef);
 
   collectionId = signal<number | null>(null);
   bookToDelete = signal<BookModel | null>(null);
@@ -93,7 +95,7 @@ export class CollectionDetailComponent implements OnInit {
     this.store.dispatch(loadBooks());
 
     // route param: /collections/:collectionId
-    this.route.paramMap.subscribe((params) => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const raw = params.get('collectionId');
       const id = raw ? Number(raw) : null;
       this.collectionId.set(id);
@@ -102,7 +104,9 @@ export class CollectionDetailComponent implements OnInit {
       this.bookToDelete.set(null);
     });
 
-    this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
+    this.filterControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => this.filterQuery.set(val));
   }
 
   // Computeds for template

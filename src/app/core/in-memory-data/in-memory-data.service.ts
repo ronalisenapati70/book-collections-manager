@@ -111,12 +111,8 @@ export class InMemoryDataService implements InMemoryDbService {
     return { collections, books };
   }
 
-  // Ensures each POST gets a new ID
-  getNextId(items: { id: number }[]): number {
-    return items.length === 0 ? 1 : Math.max(...items.map((item) => item.id)) + 1;
-  }
-
   genId<T extends { id: number }>(items: T[]): number {
-    return this.getNextId(items);
+    // Ensures each POST gets a new ID
+    return items.length === 0 ? 1 : Math.max(...items.map((item) => item.id)) + 1;
   }
 }

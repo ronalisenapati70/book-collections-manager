@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnInit,
   computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
@@ -39,6 +40,7 @@ export class BookDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private store = inject(Store);
+  private destroyRef = inject(DestroyRef);
 
   books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
   booksLoading = toSignal(this.store.select(selectBooksLoading), { initialValue: true });
@@ -96,7 +98,7 @@ export class BookDetailComponent implements OnInit {
     this.store.dispatch(loadBooks());
 
     // Load book whenever route param changes
-    this.route.paramMap.subscribe((pm) => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((pm) => {
       const raw = pm.get('bookId');
       const id = raw ? Number(raw) : null;
       this.bookId.set(id);

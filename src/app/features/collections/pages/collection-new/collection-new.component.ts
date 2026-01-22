@@ -1,6 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+} from '@angular/core';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -28,6 +35,7 @@ export class CollectionNewComponent implements OnInit {
   private router = inject(Router);
   private store = inject(Store);
   private actions$ = inject(Actions);
+  private destroyRef = inject(DestroyRef);
 
   books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
   unassignedBooks = computed(() =>
@@ -74,7 +82,7 @@ export class CollectionNewComponent implements OnInit {
       }),
     );
     this.actions$
-      .pipe(ofType(createCollectionSuccess), take(1))
+      .pipe(ofType(createCollectionSuccess), take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.router.navigateByUrl('/collections');
       });

@@ -1,6 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -22,6 +30,7 @@ import { selectAllBooks, selectBooksError } from '../../../books/store/books.sel
 })
 export class CollectionListComponent implements OnInit {
   private store = inject(Store);
+  private destroyRef = inject(DestroyRef);
 
   collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
   collectionsError = toSignal(this.store.select(selectCollectionsError), { initialValue: null });
@@ -37,7 +46,9 @@ export class CollectionListComponent implements OnInit {
     this.store.dispatch(loadCollections());
     this.store.dispatch(loadBooks());
 
-    this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
+    this.filterControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => this.filterQuery.set(val));
   }
 
   filteredCollections = computed(() => {

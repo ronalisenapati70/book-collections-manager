@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BookModel } from '../../models/books.model';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -26,6 +34,7 @@ import { BookCardComponent } from '../../components/book-card/book-card.componen
 })
 export class BookListComponent implements OnInit {
   private store = inject(Store);
+  private destroyRef = inject(DestroyRef);
 
   books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
   booksError = toSignal(this.store.select(selectBooksError), { initialValue: null });
@@ -40,7 +49,9 @@ export class BookListComponent implements OnInit {
   ngOnInit(): void {
     this.store.dispatch(loadCollections());
     this.store.dispatch(loadBooks());
-    this.filterControl.valueChanges.subscribe((val) => this.filterQuery.set(val));
+    this.filterControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => this.filterQuery.set(val));
   }
 
   getCollectionName = (id: number | null): string | undefined =>

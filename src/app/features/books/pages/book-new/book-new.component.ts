@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
@@ -22,6 +22,7 @@ export class BookNewComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private store = inject(Store);
+  private destroyRef = inject(DestroyRef);
 
   collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
 
@@ -40,7 +41,9 @@ export class BookNewComponent implements OnInit {
     this.store.dispatch(loadCollections());
 
     // Preselect collectionId when coming from collection detail via query param
-    this.route.queryParamMap.subscribe((qp) => {
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((qp) => {
       const collectionId = qp.get('collectionId');
       if (collectionId) {
         this.bookForm.controls.collectionId.setValue(Number(collectionId));
