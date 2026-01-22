@@ -41,6 +41,28 @@ export class BookListComponent {
   getCollectionName = (id: number | null): string | undefined =>
     id === null ? undefined : this.collections().find((c) => c.id === id)?.name;
 
+  getCollectionTheme = (id: number | null): string => {
+    const theme = id === null ? 'slate' : this.collections().find((c) => c.id === id)?.theme;
+    switch (theme) {
+      case 'indigo':
+        return 'rgba(99, 102, 241, 0.7)';
+      case 'emerald':
+        return 'rgba(16, 185, 129, 0.7)';
+      case 'rose':
+        return 'rgba(244, 63, 94, 0.65)';
+      case 'amber':
+        return 'rgba(245, 158, 11, 0.65)';
+      case 'cyan':
+        return 'rgba(6, 182, 212, 0.65)';
+      case 'violet':
+        return 'rgba(139, 92, 246, 0.7)';
+      case 'teal':
+        return 'rgba(20, 184, 166, 0.65)';
+      default:
+        return 'rgba(100, 116, 139, 0.35)';
+    }
+  };
+
   filteredBooks = computed(() => {
     const query = this.filterQuery().trim().toLowerCase();
     const items = this.books();

@@ -41,23 +41,34 @@
   </div>
 
   <div class="book-grid">
-    <div class="book-card" *ngFor="let book of filteredBooks(); trackBy: trackByBookId">
-      <div class="card-image-wrapper" aria-hidden="true">
-        <div class="book-cover-placeholder"></div>
-        <div class="image-overlay">
-          <span class="rating">{{ stars(book.rating) }}</span>
-        </div>
-      </div>
-
+      <div
+        class="book-card"
+        *ngFor="let book of filteredBooks(); trackBy: trackByBookId"
+        [routerLink]="['/books', book.id]"
+        role="link"
+        tabindex="0"
+      >
+        <div
+          class="color-strip"
+          [style.background-color]="getCollectionTheme(book.collectionId)"
+          aria-hidden="true"
+        ></div>
       <div class="card-content">
-        <h3 class="title">{{ book.title }}</h3>
+        <div class="card-header">
+          <h3 class="title">{{ book.title }}</h3>
+          <span class="rating-pill">{{ stars(book.rating) }}</span>
+        </div>
         <p class="author">{{ book.author }}</p>
 
         <div
           class="collection-chip-wrapper"
           *ngIf="getCollectionName(book.collectionId) as colName"
         >
-          <a [routerLink]="['/collections', book.collectionId]" class="collection-chip">
+          <a
+            [routerLink]="['/collections', book.collectionId]"
+            class="collection-chip"
+            (click)="$event.stopPropagation()"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 16 16"
@@ -81,35 +92,12 @@
         </p>
 
         <div class="card-actions">
-          <a
-            [routerLink]="['/books', book.id]"
-            class="action-button edit-button"
-            aria-label="View or edit book"
-            title="View or edit book"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="icon"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M16.862 4.487 19.5 7.125M16.862 4.487l-9.9 9.9a2.25 2.25 0 0 0-.577 1.034l-.74 2.96 2.96-.74a2.25 2.25 0 0 0 1.034-.577l9.9-9.9M16.862 4.487 19.5 7.125"
-              />
-            </svg>
-          </a>
-
           <button
             type="button"
-            (click)="confirmDeleteBook(book)"
             class="action-button remove-button"
             aria-label="Remove book"
             title="Remove book"
+            (click)="$event.stopPropagation(); confirmDeleteBook(book)"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

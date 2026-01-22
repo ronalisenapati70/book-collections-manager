@@ -12,7 +12,7 @@ import {
   CollectionThemeColor,
 } from '../../../../shared/constants/color-themes';
 import { loadCollections, updateCollection } from '../../store/collections.actions';
-import { loadBooks, deleteBook } from '../../../books/store/books.actions';
+import { loadBooks, deleteBook, updateBook } from '../../../books/store/books.actions';
 import { selectAllCollections } from '../../store/collections.selectors';
 import { selectAllBooks } from '../../../books/store/books.selectors';
 
@@ -35,6 +35,7 @@ export class CollectionDetailComponent {
   filterQuery = signal('');
 
   readonly colors = COLLECTION_THEME_COLORS;
+  selectedBookIds = new FormControl<number[]>([], { nonNullable: true });
 
   collectionForm = new FormGroup({
     name: new FormControl('', {
@@ -95,6 +96,8 @@ export class CollectionDetailComponent {
     return this.books().filter((b) => b.collectionId === id);
   });
 
+  availableBooks = computed(() => this.books().filter((b) => b.collectionId === null));
+
   filteredBooks = computed(() => {
     const query = this.filterQuery().trim().toLowerCase();
     const items = this.collectionBooks();
@@ -122,6 +125,13 @@ export class CollectionDetailComponent {
     this.bookToDelete.set(null);
   }
 
+  toggleBookSelection(id: number, checked: boolean) {
+    const current = this.selectedBookIds.value;
+    this.selectedBookIds.setValue(
+      checked ? [...current, id] : current.filter((bookId) => bookId !== id),
+    );
+  }
+
   startEditCollection() {
     if (!this.collection()) return;
     this.isEditing.set(true);
@@ -136,6 +146,7 @@ export class CollectionDetailComponent {
         theme: c.theme as CollectionThemeColor,
       });
     }
+    this.selectedBookIds.setValue([]);
     this.isEditing.set(false);
   }
 
@@ -154,6 +165,14 @@ export class CollectionDetailComponent {
     this.isEditing.set(false);
 
     this.store.dispatch(updateCollection({ collection: updated }));
+
+    const selectedIds = this.selectedBookIds.value;
+    selectedIds.forEach((id) => {
+      const book = this.books().find((item) => item.id === id);
+      if (!book) return;
+      this.store.dispatch(updateBook({ book: { ...book, collectionId: updated.id } }));
+    });
+    this.selectedBookIds.setValue([]);
   }
 
   trackByColor(_index: number, color: string) {
@@ -167,14 +186,5 @@ export class CollectionDetailComponent {
   stars(rating: number): string {
     const r = Math.max(0, Math.min(5, rating));
     return `Rating: ${r}`;
-  }
-
-  initials(title: string): string {
-    return title
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((w) => w[0]!.toUpperCase())
-      .join('');
   }
 }

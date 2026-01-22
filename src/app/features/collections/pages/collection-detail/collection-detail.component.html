@@ -1,4 +1,4 @@
-<div class="page-wrapper">
+<div class="page-wrapper collection-detail">
   <div [class]="'detail-header color-theme-' + (collection()?.theme || 'slate')">
     <div class="header-content">
       <a routerLink="/collections" class="back-link">
@@ -63,6 +63,25 @@
                 ></button>
               </div>
             </div>
+            <div class="form-group">
+              <label class="form-label">Add Books</label>
+              <div class="book-options" *ngIf="availableBooks().length; else noBooks">
+                <label
+                  class="book-option"
+                  *ngFor="let book of availableBooks(); trackBy: trackByBookId"
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="selectedBookIds.value.includes(book.id)"
+                    (change)="toggleBookSelection(book.id, $any($event.target).checked)"
+                  />
+                  <span>{{ book.title }}</span>
+                </label>
+              </div>
+              <ng-template #noBooks>
+                <p class="book-empty">No unassigned books available.</p>
+              </ng-template>
+            </div>
           </div>
           <div class="edit-actions">
             <button type="button" class="button button-secondary" (click)="cancelEditCollection()">
@@ -105,51 +124,34 @@
     </div>
 
     <div class="book-grid">
-      <div class="book-card" *ngFor="let book of filteredBooks(); trackBy: trackByBookId">
-        <div class="card-image-wrapper">
-          <div class="book-cover-placeholder"></div>
-          <div class="image-overlay">
-            <span class="rating">
-              {{ stars(book.rating) }}
-            </span>
-          </div>
-        </div>
+      <div
+        class="book-card"
+        *ngFor="let book of filteredBooks(); trackBy: trackByBookId"
+        [routerLink]="['/collections', collectionId(), 'books', book.id]"
+        role="link"
+        tabindex="0"
+      >
+        <div
+          class="color-strip"
+          [class]="'color-strip color-theme-' + (collection()?.theme || 'slate')"
+          aria-hidden="true"
+        ></div>
         <div class="card-content">
-          <h3>{{ book.title }}</h3>
+          <div class="card-header">
+            <h3 class="title">{{ book.title }}</h3>
+            <span class="rating-pill">{{ stars(book.rating) }}</span>
+          </div>
           <p class="author">{{ book.author }}</p>
           <p class="description">
             {{ book.description }}
           </p>
           <div class="card-actions">
-            <a
-              *ngIf="collectionId() as colId"
-              [routerLink]="['/collections', colId, 'books', book.id]"
-              class="action-button edit-button"
-              aria-label="View or edit book"
-              title="View or edit book"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="icon"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M16.862 4.487 19.5 7.125M16.862 4.487l-9.9 9.9a2.25 2.25 0 0 0-.577 1.034l-.74 2.96 2.96-.74a2.25 2.25 0 0 0 1.034-.577l9.9-9.9M16.862 4.487 19.5 7.125"
-                />
-              </svg>
-            </a>
             <button
               type="button"
-              (click)="confirmDeleteBook(book)"
               class="action-button remove-button"
               aria-label="Remove book"
               title="Remove book"
+              (click)="$event.stopPropagation(); confirmDeleteBook(book)"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

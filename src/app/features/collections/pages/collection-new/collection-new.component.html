@@ -55,6 +55,25 @@
             ></button>
           </div>
         </div>
+        <div class="form-group">
+          <label class="form-label">Add Existing Books</label>
+          <div class="book-options" *ngIf="unassignedBooks().length; else noBooks">
+            <label
+              class="book-option"
+              *ngFor="let book of unassignedBooks(); trackBy: trackByBookId"
+            >
+              <input
+                type="checkbox"
+                [checked]="selectedBookIds.value.includes(book.id)"
+                (change)="toggleBookSelection(book.id, $any($event.target).checked)"
+              />
+              <span>{{ book.title }}</span>
+            </label>
+          </div>
+          <ng-template #noBooks>
+            <p class="book-empty">No unassigned books available.</p>
+          </ng-template>
+        </div>
       </div>
       <div class="form-footer">
         <a routerLink="/collections" class="button button-secondary">Cancel</a>
