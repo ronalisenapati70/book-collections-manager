@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BehaviorSubject, of } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
 import { BookDetailComponent } from './book-detail.component';
 import { BookModel } from '../../models/books.model';
@@ -37,6 +37,7 @@ describe('BookDetailComponent', () => {
       imports: [BookDetailComponent],
       providers: [
         { provide: Store, useValue: store },
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {

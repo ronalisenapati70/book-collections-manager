@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BehaviorSubject, of } from 'rxjs';
 import { Store } from '@ngrx/store';
+import { provideRouter } from '@angular/router';
 
 import { BookListComponent } from './book-list.component';
 import { BookModel } from '../../models/books.model';
@@ -32,7 +33,7 @@ describe('BookListComponent', () => {
     store = new MockStore();
     await TestBed.configureTestingModule({
       imports: [BookListComponent],
-      providers: [{ provide: Store, useValue: store }],
+      providers: [{ provide: Store, useValue: store }, provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BookListComponent);

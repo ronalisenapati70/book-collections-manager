@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BehaviorSubject, of } from 'rxjs';
 import { Store } from '@ngrx/store';
+import { provideRouter } from '@angular/router';
 
 import { CollectionListComponent } from './collection-list.component';
 import { CollectionModel } from '../../models/collections.model';
@@ -31,7 +32,7 @@ describe('CollectionListComponent', () => {
     store = new MockStore();
     await TestBed.configureTestingModule({
       imports: [CollectionListComponent],
-      providers: [{ provide: Store, useValue: store }],
+      providers: [{ provide: Store, useValue: store }, provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CollectionListComponent);

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BehaviorSubject, of } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
 import { BookNewComponent } from './book-new.component';
 import { CollectionModel } from '../../../collections/models/collections.model';
@@ -31,6 +31,7 @@ describe('BookNewComponent', () => {
       imports: [BookNewComponent],
       providers: [
         { provide: Store, useValue: store },
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {

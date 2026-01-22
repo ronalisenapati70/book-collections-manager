@@ -2,6 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BehaviorSubject, of } from 'rxjs';
 import { Store } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
+import { Subject } from 'rxjs';
+import { provideRouter } from '@angular/router';
 
 import { CollectionNewComponent } from './collection-new.component';
 import { BookModel } from '../../../books/models/books.model';
@@ -28,7 +31,11 @@ describe('CollectionNewComponent', () => {
     store = new MockStore();
     await TestBed.configureTestingModule({
       imports: [CollectionNewComponent],
-      providers: [{ provide: Store, useValue: store }],
+      providers: [
+        { provide: Store, useValue: store },
+        { provide: Actions, useValue: new Actions(new Subject()) },
+        provideRouter([]),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CollectionNewComponent);

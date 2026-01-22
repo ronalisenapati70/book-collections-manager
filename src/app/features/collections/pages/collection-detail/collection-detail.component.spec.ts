@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BehaviorSubject, of } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
 import { CollectionDetailComponent } from './collection-detail.component';
 import { CollectionModel } from '../../models/collections.model';
@@ -35,6 +35,7 @@ describe('CollectionDetailComponent', () => {
       imports: [CollectionDetailComponent],
       providers: [
         { provide: Store, useValue: store },
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {
