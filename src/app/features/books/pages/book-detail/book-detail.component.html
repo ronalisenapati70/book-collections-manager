@@ -1,4 +1,11 @@
 <div class="page-container">
+  <div class="error-banner" *ngIf="booksError() || collectionsError()">
+    <p>
+      We ran into a problem loading this book.
+      {{ booksError() || collectionsError() }}
+    </p>
+  </div>
+
   <ng-container *ngIf="book() as currentBook; else pendingOrNotFound">
     <header class="page-header">
       <a routerLink="/books" class="back-link">
@@ -48,11 +55,4 @@
     </div>
   </ng-template>
 
-  <app-confirm-modal
-    [isOpen]="!!bookToDelete()"
-    title="Delete Book"
-    [message]="'Are you sure you want to permanently delete ' + bookToDelete()?.title + '?'"
-    (onConfirm)="deleteBook()"
-    (onCancel)="bookToDelete.set(null)"
-  ></app-confirm-modal>
 </div>

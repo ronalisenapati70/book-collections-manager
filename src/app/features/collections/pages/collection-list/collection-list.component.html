@@ -38,6 +38,13 @@
     </div>
   </div>
 
+  <div class="error-banner" *ngIf="collectionsError() || booksError()">
+    <p>
+      We ran into a problem loading your collections.
+      {{ collectionsError() || booksError() }}
+    </p>
+  </div>
+
   <div class="collection-grid">
     <div
       class="collection-card"

@@ -57,6 +57,13 @@
   </div>
 
   <div class="page-content">
+    <div class="error-banner" *ngIf="collectionsError() || booksError()">
+      <p>
+        We ran into a problem loading this collection.
+        {{ collectionsError() || booksError() }}
+      </p>
+    </div>
+
     <div class="filter-bar">
       <div class="search-input-wrapper">
         <svg

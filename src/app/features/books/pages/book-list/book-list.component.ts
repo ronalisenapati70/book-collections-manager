@@ -9,8 +9,11 @@ import { Store } from '@ngrx/store';
 
 import { loadBooks, deleteBook } from '../../store/books.actions';
 import { loadCollections } from '../../../collections/store/collections.actions';
-import { selectAllBooks } from '../../store/books.selectors';
-import { selectAllCollections } from '../../../collections/store/collections.selectors';
+import { selectAllBooks, selectBooksError } from '../../store/books.selectors';
+import {
+  selectAllCollections,
+  selectCollectionsError,
+} from '../../../collections/store/collections.selectors';
 import { BookCardComponent } from '../../components/book-card/book-card.component';
 
 @Component({
@@ -25,7 +28,9 @@ export class BookListComponent implements OnInit {
   private store = inject(Store);
 
   books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
+  booksError = toSignal(this.store.select(selectBooksError), { initialValue: null });
   collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
+  collectionsError = toSignal(this.store.select(selectCollectionsError), { initialValue: null });
 
   bookToDelete = signal<BookModel | null>(null);
 

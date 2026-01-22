@@ -40,6 +40,13 @@
     <div class="book-count-display">Total: {{ filteredBooks().length }} books</div>
   </div>
 
+  <div class="error-banner" *ngIf="booksError() || collectionsError()">
+    <p>
+      We ran into a problem loading your library.
+      {{ booksError() || collectionsError() }}
+    </p>
+  </div>
+
   <div class="book-grid">
     <app-book-card
       *ngFor="let book of filteredBooks(); trackBy: trackByBookId"

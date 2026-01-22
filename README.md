@@ -28,6 +28,31 @@ Then open `http://localhost:4200/`.
 - Typed reactive forms
 - NgRx store + effects for collections and books
 
+## Architecture overview
+
+- Standalone components with typed reactive forms are used throughout
+- NgRx is used for state management of collections and books
+- `LibraryApiService` talks to the in-memory API at `/api`
+- Forms live in feature components; shared UI lives under `src/app/shared`
+- angular-in-memory-web-api simulates a backend (`/api/collections`, `/api/books`)
+
+## Routing
+
+- `/collections` list collections
+- `/collections/new` create collection
+- `/collections/:collectionId` collection detail + edit
+- `/books` list books
+- `/books/new` create book
+- `/books/:bookId` book detail + edit
+- `/collections/:collectionId/books/:bookId` book detail within a collection
+
+## Notes
+
+- Empty path and unknown routes redirect to `/collections`
+- All routes are nested under the `AppLayoutComponent`
+- Data is persisted only in memory; page reload resets state
+- NgRx store is the source of truth during runtime
+
 ## Tests
 
 Run the basic component and route tests with:

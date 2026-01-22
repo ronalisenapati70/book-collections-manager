@@ -9,8 +9,8 @@ import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confi
 import { CollectionModel } from '../../models/collections.model';
 import { loadCollections, deleteCollection } from '../../store/collections.actions';
 import { loadBooks } from '../../../books/store/books.actions';
-import { selectAllCollections } from '../../store/collections.selectors';
-import { selectAllBooks } from '../../../books/store/books.selectors';
+import { selectAllCollections, selectCollectionsError } from '../../store/collections.selectors';
+import { selectAllBooks, selectBooksError } from '../../../books/store/books.selectors';
 
 @Component({
   selector: 'app-collection-list',
@@ -24,7 +24,9 @@ export class CollectionListComponent implements OnInit {
   private store = inject(Store);
 
   collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
+  collectionsError = toSignal(this.store.select(selectCollectionsError), { initialValue: null });
   private books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
+  booksError = toSignal(this.store.select(selectBooksError), { initialValue: null });
 
   itemToDelete = signal<CollectionModel | null>(null);
 

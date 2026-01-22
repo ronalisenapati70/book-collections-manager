@@ -13,18 +13,24 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 
-import { ConfirmModalComponent } from '../../../../shared/ui/confirm-modal/confirm-modal.component';
 import { BookFormComponent } from '../../components/book-form/book-form.component';
 import { BookModel } from '../../models/books.model';
-import { loadBooks, updateBook, deleteBook } from '../../store/books.actions';
+import { loadBooks, updateBook } from '../../store/books.actions';
 import { loadCollections } from '../../../collections/store/collections.actions';
-import { selectAllBooks, selectBooksLoading } from '../../store/books.selectors';
-import { selectAllCollections } from '../../../collections/store/collections.selectors';
+import {
+  selectAllBooks,
+  selectBooksError,
+  selectBooksLoading,
+} from '../../store/books.selectors';
+import {
+  selectAllCollections,
+  selectCollectionsError,
+} from '../../../collections/store/collections.selectors';
 
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [RouterLink, CommonModule, ConfirmModalComponent, BookFormComponent],
+  imports: [RouterLink, CommonModule, BookFormComponent],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,11 +42,11 @@ export class BookDetailComponent implements OnInit {
 
   books = toSignal(this.store.select(selectAllBooks), { initialValue: [] });
   booksLoading = toSignal(this.store.select(selectBooksLoading), { initialValue: true });
+  booksError = toSignal(this.store.select(selectBooksError), { initialValue: null });
   collections = toSignal(this.store.select(selectAllCollections), { initialValue: [] });
+  collectionsError = toSignal(this.store.select(selectCollectionsError), { initialValue: null });
 
   private bookId = signal<number | null>(null);
-
-  bookToDelete = signal<BookModel | null>(null);
 
   bookForm = new FormGroup({
     collectionId: new FormControl<number | null>(null),
@@ -95,8 +101,6 @@ export class BookDetailComponent implements OnInit {
       const id = raw ? Number(raw) : null;
       this.bookId.set(id);
 
-      // reset modal state on route change
-      this.bookToDelete.set(null);
     });
   }
 
@@ -137,16 +141,4 @@ export class BookDetailComponent implements OnInit {
     this.router.navigateByUrl('/books');
   }
 
-  confirmDelete(book: BookModel): void {
-    this.bookToDelete.set(book);
-  }
-
-  deleteBook(): void {
-    const b = this.bookToDelete();
-    if (!b) return;
-
-    this.store.dispatch(deleteBook({ id: b.id }));
-    this.bookToDelete.set(null);
-    this.router.navigateByUrl('/books');
-  }
 }
